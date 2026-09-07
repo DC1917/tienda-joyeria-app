@@ -1,16 +1,19 @@
-# React + Vite
+# 💍 Tienda Joyería App (Silver 925 CL)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web progresiva y de diseño minimalista diseñada para la gestión, exhibición y comercialización de piezas de joyería fina en plata 925. El proyecto prioriza una experiencia de usuario (UX/UI) de alta gama, con estética de vitrina boutique y un flujo de compra directo optimizado mediante mensajería instantánea.
 
-Currently, two official plugins are available:
+## 🚀 Características Principales
+- **Catálogo Dinámico**: Sincronización en tiempo real con base de datos en la nube para la carga y visualización de productos.
+- **Detalle de Piezas**: Vista de producto avanzada con galería de imágenes en miniatura, especificaciones técnicas (peso en gramos, largo en centímetros y ley del material) y efectos de zoom.
+- **Carrito de Compras Interactivo**: Gestión completa de artículos, control de cantidades y cálculo automático de totales.
+- **Pasarela de Pedidos a WhatsApp**: Generación automática de un mensaje personalizado con el detalle del carrito para coordinar la compra directamente con la tienda.
+- **Diseño UI/UX Minimalista**: Interfaz desarrollada bajo los principios de diseño "menos es más", utilizando paletas de colores neutros, tipografías cuidadas y transiciones fluidas.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🛠️ Tecnologías Utilizadas
+- **Frontend**: React.js (Vite), React Router DOM.
+- **Estilos**: Tailwind CSS.
+- **Base de Datos / Backend**: Firebase (Cloud Firestore).
+- **Control de Versiones**: Git & GitHub.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+*Desarrollado como solución comercial y proyecto de exhibición técnica.*
