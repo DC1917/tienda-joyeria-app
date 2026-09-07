@@ -46,7 +46,7 @@ function AdminProductos() {
       return
     }
     setSubiendo(true)
-    setMensaje('Subiendo fotos...')
+    setMensaje('Subiendo fotos a la nube...')
 
     try {
       const urlPortada = await subirFoto(archivoPortada)
@@ -68,7 +68,7 @@ function AdminProductos() {
         disponible: true,
       })
 
-      setMensaje('Producto agregado correctamente.')
+      setMensaje('¡Producto agregado correctamente!')
       setNombre('')
       setPesoGramos('')
       setLargoCm('')
@@ -85,111 +85,151 @@ function AdminProductos() {
   }
 
   async function handleEliminar(id) {
-    if (!confirm('¿Eliminar este producto?')) return
+    if (!confirm('¿Estás seguro de eliminar este producto?')) return
     await deleteDoc(doc(db, 'productos', id))
     cargarProductos()
   }
 
   return (
-    <div>
-      <form onSubmit={handleSubmit} className="space-y-4 mb-10 border rounded-lg p-5">
-        <h2 className="text-lg font-medium">Agregar producto</h2>
+    <div className="space-y-10">
+      
+      {/* Formulario de Agregar Producto */}
+      <div className="bg-white p-8 md:p-10 rounded-3xl border border-stone-200/80 shadow-sm">
+        <h2 className="text-xl font-light font-serif tracking-tight text-stone-900 mb-6">Agregar nueva pieza</h2>
 
-        <input
-          type="text"
-          placeholder="Nombre del producto"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          className="w-full border rounded-lg p-3"
-          required
-        />
-
-        <div className="grid grid-cols-3 gap-3">
-          <input
-            type="number"
-            placeholder="Peso (g)"
-            value={pesoGramos}
-            onChange={(e) => setPesoGramos(e.target.value)}
-            className="border rounded-lg p-3"
-            required
-          />
-          <input
-            type="number"
-            placeholder="Largo (cm)"
-            value={largoCm}
-            onChange={(e) => setLargoCm(e.target.value)}
-            className="border rounded-lg p-3"
-            required
-          />
-          <input
-            type="text"
-            placeholder="Ley"
-            value={ley}
-            onChange={(e) => setLey(e.target.value)}
-            className="border rounded-lg p-3"
-            required
-          />
-        </div>
-
-        <input
-          type="number"
-          placeholder="Precio"
-          value={precio}
-          onChange={(e) => setPrecio(e.target.value)}
-          className="w-full border rounded-lg p-3"
-          required
-        />
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Foto de portada</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setArchivoPortada(e.target.files[0])}
-            className="w-full"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Fotos adicionales (2 a 4)</label>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) => setArchivosGaleria(Array.from(e.target.files))}
-            className="w-full"
-          />
-        </div>
-
-        {mensaje && <p className="text-sm">{mensaje}</p>}
-
-        <button
-          type="submit"
-          disabled={subiendo}
-          className="w-full bg-black text-white py-3 rounded-lg font-medium disabled:opacity-50"
-        >
-          {subiendo ? 'Guardando...' : 'Guardar producto'}
-        </button>
-      </form>
-
-      <h2 className="text-lg font-medium mb-4">Productos cargados ({productos.length})</h2>
-      <div className="space-y-3">
-        {productos.map(p => (
-          <div key={p.id} className="flex items-center justify-between border-b pb-3">
-            <div className="flex items-center gap-3">
-              <img src={p.fotoPortada} alt={p.nombre} className="w-14 h-14 object-cover rounded" />
-              <div>
-                <p className="font-medium">{p.nombre}</p>
-                <p className="text-gray-600 text-sm">${p.precio?.toLocaleString('es-CL')}</p>
-              </div>
-            </div>
-            <button onClick={() => handleEliminar(p.id)} className="text-red-600 text-sm">
-              Eliminar
-            </button>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          
+          <div>
+            <label className="block text-xs uppercase tracking-widest text-stone-500 font-medium mb-2">Nombre de la pieza</label>
+            <input
+              type="text"
+              placeholder="Ej: Anillo Solitario de Plata"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              className="w-full border border-stone-200 rounded-2xl p-3.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-400 transition-all text-stone-900"
+              required
+            />
           </div>
-        ))}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-stone-500 font-medium mb-2">Peso (g)</label>
+              <input
+                type="number"
+                placeholder="0.0"
+                value={pesoGramos}
+                onChange={(e) => setPesoGramos(e.target.value)}
+                className="w-full border border-stone-200 rounded-2xl p-3.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-400 transition-all text-stone-900"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-stone-500 font-medium mb-2">Largo (cm)</label>
+              <input
+                type="number"
+                placeholder="0.0"
+                value={largoCm}
+                onChange={(e) => setLargoCm(e.target.value)}
+                className="w-full border border-stone-200 rounded-2xl p-3.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-400 transition-all text-stone-900"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-stone-500 font-medium mb-2">Ley</label>
+              <input
+                type="text"
+                placeholder="925"
+                value={ley}
+                onChange={(e) => setLey(e.target.value)}
+                className="w-full border border-stone-200 rounded-2xl p-3.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-400 transition-all text-stone-900"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs uppercase tracking-widest text-stone-500 font-medium mb-2">Precio ($ CLP)</label>
+            <input
+              type="number"
+              placeholder="Ej: 24990"
+              value={precio}
+              onChange={(e) => setPrecio(e.target.value)}
+              className="w-full border border-stone-200 rounded-2xl p-3.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-400 transition-all text-stone-900"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div className="p-4 border border-stone-200 rounded-2xl bg-stone-50/30">
+              <label className="block text-xs uppercase tracking-widest text-stone-700 font-medium mb-2">Foto de portada *</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setArchivoPortada(e.target.files[0])}
+                className="w-full text-xs text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-medium file:bg-stone-900 file:text-white hover:file:bg-stone-800 cursor-pointer"
+                required
+              />
+            </div>
+
+            <div className="p-4 border border-stone-200 rounded-2xl bg-stone-50/30">
+              <label className="block text-xs uppercase tracking-widest text-stone-700 font-medium mb-2">Fotos galería (opcional)</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => setArchivosGaleria(Array.from(e.target.files))}
+                className="w-full text-xs text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-medium file:bg-stone-200 file:text-stone-800 hover:file:bg-stone-300 cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {mensaje && (
+            <div className="p-3 rounded-xl bg-stone-100 text-stone-800 text-xs text-center font-light">
+              {mensaje}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={subiendo}
+            className="w-full bg-stone-950 hover:bg-stone-900 text-white py-4 rounded-2xl font-medium text-xs uppercase tracking-widest transition-all shadow-sm active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+          >
+            {subiendo ? 'Guardando en la nube...' : 'Guardar producto'}
+          </button>
+        </form>
       </div>
+
+      {/* Listado de Productos Cargados */}
+      <div className="bg-white p-8 md:p-10 rounded-3xl border border-stone-200/80 shadow-sm">
+        <h2 className="text-xl font-light font-serif tracking-tight text-stone-900 mb-6">
+          Catálogo actual ({productos.length})
+        </h2>
+
+        {productos.length === 0 ? (
+          <p className="text-xs text-stone-500 font-light text-center py-6">No hay productos registrados todavía.</p>
+        ) : (
+          <div className="divide-y divide-stone-100">
+            {productos.map(p => (
+              <div key={p.id} className="py-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <img src={p.fotoPortada} alt={p.nombre} className="w-14 h-14 object-cover rounded-2xl border border-stone-100 shadow-xs" />
+                  <div>
+                    <p className="font-normal text-stone-900 text-sm">{p.nombre}</p>
+                    <p className="text-amber-700 text-xs font-semibold mt-0.5">${p.precio?.toLocaleString('es-CL')}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => handleEliminar(p.id)} 
+                  className="text-xs text-stone-400 hover:text-red-600 font-light tracking-wide uppercase transition-colors cursor-pointer px-3 py-2"
+                >
+                  Eliminar
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
     </div>
   )
 }
