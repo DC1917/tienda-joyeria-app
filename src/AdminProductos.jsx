@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore'
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore'
 import { db } from './firebase'
 
 const CLOUD_NAME = 'lxekw8dr'
@@ -27,6 +27,12 @@ function AdminProductos() {
   const [precio, setPrecio] = useState('')
   const [archivoPortada, setArchivoPortada] = useState(null)
   const [archivosGaleria, setArchivosGaleria] = useState([])
+  
+  // Estados para controlar el modo de edición
+  const [editandoId, setEditandoId] = useState(null)
+  const [fotoPortadaActual, setFotoPortadaActual] = useState('')
+  const [fotosGaleriaActual, setFotosGaleriaActual] = useState([])
+
   const [subiendo, setSubiendo] = useState(false)
   const [mensaje, setMensaje] = useState('')
 
@@ -39,25 +45,54 @@ function AdminProductos() {
     cargarProductos()
   }, [])
 
+  // Cargar datos en el formulario al hacer clic en "Editar"
+  function iniciarEdicion(p) {
+    setEditandoId(p.id)
+    setNombre(p.nombre || '')
+    setPesoGramos(p.pesoGramos || '')
+    setLargoCm(p.largoCm || '')
+    setLey(p.ley || '925')
+    setPrecio(p.precio || '')
+    setFotoPortadaActual(p.fotoPortada || '')
+    setFotosGaleriaActual(p.fotosGaleria || [])
+    setArchivoPortada(null)
+    setArchivosGaleria([])
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  // Cancelar edición y limpiar formulario
+  function cancelarEdicion() {
+    setEditandoId(null)
+    setNombre('')
+    setPesoGramos('')
+    setLargoCm('')
+    setLey('925')
+    setPrecio('')
+    setFotoPortadaActual('')
+    setFotosGaleriaActual([])
+    setArchivoPortada(null)
+    setArchivosGaleria([])
+    setMensaje('')
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!archivoPortada) {
-      setMensaje('Falta la foto de portada.')
-      return
-    }
     setSubiendo(true)
-    setMensaje('Subiendo fotos a la nube...')
+    setMensaje(editandoId ? 'Actualizando producto...' : 'Subiendo fotos a la nube...')
 
     try {
-      const urlPortada = await subirFoto(archivoPortada)
+      let urlPortada = fotoPortadaActual
+      if (archivoPortada) {
+        urlPortada = await subirFoto(archivoPortada)
+      }
 
-      const urlsGaleria = []
+      const urlsGaleria = [...fotosGaleriaActual]
       for (const archivo of archivosGaleria) {
         const url = await subirFoto(archivo)
         urlsGaleria.push(url)
       }
 
-      await addDoc(collection(db, 'productos'), {
+      const datosProducto = {
         nombre,
         pesoGramos: Number(pesoGramos),
         largoCm: Number(largoCm),
@@ -66,16 +101,24 @@ function AdminProductos() {
         fotoPortada: urlPortada,
         fotosGaleria: urlsGaleria,
         disponible: true,
-      })
+      }
 
-      setMensaje('¡Producto agregado correctamente!')
-      setNombre('')
-      setPesoGramos('')
-      setLargoCm('')
-      setLey('925')
-      setPrecio('')
-      setArchivoPortada(null)
-      setArchivosGaleria([])
+      if (editandoId) {
+        // Actualizar registro existente
+        await updateDoc(doc(db, 'productos', editandoId), datosProducto)
+        setMensaje('¡Producto actualizado correctamente!')
+      } else {
+        // Crear nuevo registro
+        if (!archivoPortada) {
+          setMensaje('Falta la foto de portada.')
+          setSubiendo(false)
+          return
+        }
+        await addDoc(collection(db, 'productos'), datosProducto)
+        setMensaje('¡Producto agregado correctamente!')
+      }
+
+      cancelarEdicion()
       cargarProductos()
     } catch (err) {
       setMensaje('Ocurrió un error al guardar el producto.')
@@ -93,9 +136,22 @@ function AdminProductos() {
   return (
     <div className="space-y-10">
       
-      {/* Formulario de Agregar Producto */}
+      {/* Formulario de Agregar / Editar Producto */}
       <div className="bg-white p-8 md:p-10 rounded-3xl border border-stone-200/80 shadow-sm">
-        <h2 className="text-xl font-light font-serif tracking-tight text-stone-900 mb-6">Agregar nueva pieza</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-light font-serif tracking-tight text-stone-900">
+            {editandoId ? 'Editar pieza de joyería' : 'Agregar nueva pieza'}
+          </h2>
+          {editandoId && (
+            <button 
+              type="button" 
+              onClick={cancelarEdicion}
+              className="text-xs uppercase tracking-widest text-stone-500 hover:text-stone-900 underline cursor-pointer"
+            >
+              Cancelar edición
+            </button>
+          )}
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           
@@ -161,18 +217,23 @@ function AdminProductos() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div className="p-4 border border-stone-200 rounded-2xl bg-stone-50/30">
-              <label className="block text-xs uppercase tracking-widest text-stone-700 font-medium mb-2">Foto de portada *</label>
+              <label className="block text-xs uppercase tracking-widest text-stone-700 font-medium mb-2">
+                {editandoId ? 'Cambiar foto portada (opcional)' : 'Foto de portada *'}
+              </label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => setArchivoPortada(e.target.files[0])}
                 className="w-full text-xs text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-medium file:bg-stone-900 file:text-white hover:file:bg-stone-800 cursor-pointer"
-                required
+                required={!editandoId}
               />
+              {editandoId && fotoPortadaActual && (
+                <p className="text-[10px] text-stone-400 mt-2">Ya tiene una portada asignada (si subes otra, se reemplazará).</p>
+              )}
             </div>
 
             <div className="p-4 border border-stone-200 rounded-2xl bg-stone-50/30">
-              <label className="block text-xs uppercase tracking-widest text-stone-700 font-medium mb-2">Fotos galería (opcional)</label>
+              <label className="block text-xs uppercase tracking-widest text-stone-700 font-medium mb-2">Agregar más a galería</label>
               <input
                 type="file"
                 accept="image/*"
@@ -180,6 +241,9 @@ function AdminProductos() {
                 onChange={(e) => setArchivosGaleria(Array.from(e.target.files))}
                 className="w-full text-xs text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-medium file:bg-stone-200 file:text-stone-800 hover:file:bg-stone-300 cursor-pointer"
               />
+              {editandoId && fotosGaleriaActual.length > 0 && (
+                <p className="text-[10px] text-stone-400 mt-2">Tiene {fotosGaleriaActual.length} foto(s) en galería guardadas.</p>
+              )}
             </div>
           </div>
 
@@ -194,7 +258,7 @@ function AdminProductos() {
             disabled={subiendo}
             className="w-full bg-stone-950 hover:bg-stone-900 text-white py-4 rounded-2xl font-medium text-xs uppercase tracking-widest transition-all shadow-sm active:scale-[0.99] disabled:opacity-50 cursor-pointer"
           >
-            {subiendo ? 'Guardando en la nube...' : 'Guardar producto'}
+            {subiendo ? 'Guardando en la nube...' : (editandoId ? 'Actualizar producto' : 'Guardar producto')}
           </button>
         </form>
       </div>
@@ -218,12 +282,20 @@ function AdminProductos() {
                     <p className="text-amber-700 text-xs font-semibold mt-0.5">${p.precio?.toLocaleString('es-CL')}</p>
                   </div>
                 </div>
-                <button 
-                  onClick={() => handleEliminar(p.id)} 
-                  className="text-xs text-stone-400 hover:text-red-600 font-light tracking-wide uppercase transition-colors cursor-pointer px-3 py-2"
-                >
-                  Eliminar
-                </button>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => iniciarEdicion(p)} 
+                    className="text-xs text-stone-600 hover:text-stone-900 font-light tracking-wide uppercase transition-colors cursor-pointer px-3 py-2 border border-stone-200 rounded-xl"
+                  >
+                    Editar
+                  </button>
+                  <button 
+                    onClick={() => handleEliminar(p.id)} 
+                    className="text-xs text-stone-400 hover:text-red-600 font-light tracking-wide uppercase transition-colors cursor-pointer px-3 py-2"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </div>
             ))}
           </div>
