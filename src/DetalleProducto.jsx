@@ -45,7 +45,11 @@ function DetalleProducto() {
     </div>
   )
 
-  const galeria = producto.fotosGaleria?.length ? producto.fotosGaleria : [producto.fotoPortada]
+  // Aseguramos que la portada vaya primero, seguida de la galería
+  const galeria = [
+    producto.fotoPortada,
+    ...(producto.fotosGaleria || [])
+  ].filter(Boolean)
 
   return (
     <div className="min-h-screen bg-[#f7f7f6] py-10 px-6 text-gray-900">
@@ -126,14 +130,14 @@ function DetalleProducto() {
               </div>
             </div>
 
-            {/* Botón de acción con el tono del banner (stone-950) */}
+            {/* Botón de acción */}
             <button
               onClick={manejarAgregarCarrito}
               className="w-full bg-stone-950 text-white py-4 rounded-xl font-light tracking-widest text-xs uppercase 
-                         hover:bg-stone-900 
-                         active:scale-[0.98] 
-                         transition-all duration-200 
-                         cursor-pointer shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                       hover:bg-stone-900 
+                       active:scale-[0.98] 
+                       transition-all duration-200 
+                       cursor-pointer shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
             >
               <span>Agregar al carrito</span>
               <span className="text-amber-500">✦</span>
