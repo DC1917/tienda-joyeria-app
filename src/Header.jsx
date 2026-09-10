@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useCart } from './CartContext'
-import logoImg from './assets/logo.png'
+import Logo from './Logo'
 
 function Header() {
   const { carrito } = useCart()
@@ -16,11 +16,7 @@ function Header() {
         
         {/* Logo y Nombre de la Pyme */}
         <Link to="/" className="flex items-center gap-3 group">
-          <img 
-            src={logoImg} 
-            alt="Silver 925 CL" 
-            className="h-10 w-auto group-hover:scale-105 transition-transform duration-300" 
-          />
+          <Logo className="h-9 w-9 text-amber-700 group-hover:scale-105 transition-transform duration-300" />
           <div className="flex flex-col">
             <h1 className="text-2xl md:text-3xl font-semibold text-gray-950 tracking-tight">
               SILVER <span className="font-light text-gray-500">925</span>

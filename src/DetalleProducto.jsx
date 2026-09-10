@@ -3,6 +3,9 @@ import { useParams, Link } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from './firebase'
 import { useCart } from './CartContext'
+import logoWhatsapp from './assets/logowhatsapp.png'
+
+const TELEFONO_WHATSAPP = "56920807921"
 
 function DetalleProducto() {
   const { id } = useParams()
@@ -30,6 +33,12 @@ function DetalleProducto() {
     setTimeout(() => {
       setProductoAgregado(false)
     }, 2500)
+  }
+
+  const consultarPorWhatsApp = () => {
+    const mensaje = `Hola! Me interesa esta pieza de Silver 925 CL:\n\n*${producto.nombre}* - $${producto.precio?.toLocaleString('es-CL')}\n\n¿Me pueden dar más información?`
+    const url = `https://wa.me/${TELEFONO_WHATSAPP}?text=${encodeURIComponent(mensaje)}`
+    window.open(url, '_blank')
   }
 
   if (cargando) return (
@@ -130,18 +139,31 @@ function DetalleProducto() {
               </div>
             </div>
 
-            {/* Botón de acción */}
-            <button
-              onClick={manejarAgregarCarrito}
-              className="w-full bg-stone-950 text-white py-4 rounded-xl font-light tracking-widest text-xs uppercase 
-                       hover:bg-stone-900 
-                       active:scale-[0.98] 
-                       transition-all duration-200 
-                       cursor-pointer shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-            >
-              <span>Agregar al carrito</span>
-              <span className="text-amber-500">✦</span>
-            </button>
+            {/* Botones de acción */}
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={manejarAgregarCarrito}
+                className="w-full bg-stone-950 text-white py-4 rounded-xl font-light tracking-widest text-xs uppercase
+                         hover:bg-stone-900
+                         active:scale-[0.98]
+                         transition-all duration-200
+                         cursor-pointer shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+              >
+                <span>Agregar al carrito</span>
+                <span className="text-amber-500">✦</span>
+              </button>
+
+              <button
+                onClick={consultarPorWhatsApp}
+                className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white py-4 rounded-xl font-medium tracking-wide text-sm
+                         active:scale-[0.98]
+                         transition-all duration-200
+                         cursor-pointer shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
+              >
+                <img src={logoWhatsapp} alt="WhatsApp" className="w-5 h-5 object-contain" />
+                <span>Consultar por WhatsApp</span>
+              </button>
+            </div>
           </div>
 
         </div>

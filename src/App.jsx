@@ -26,15 +26,26 @@ function App() {
   return (
     <div className="min-h-screen bg-[#f7f7f6] text-gray-900 pb-24">
       
-      {/* 1. BANNER COMPACTO Y MINIMALISTA */}
-      <div className="bg-stone-950 text-stone-100 py-8 px-6 text-center border-b border-stone-800">
-        <div className="max-w-xl mx-auto">
-          <span className="text-[10px] uppercase tracking-[0.3em] text-amber-500 font-medium mb-1 block">
+      {/* 1. BANNER HERO */}
+      <div className="relative bg-stone-950 text-stone-100 py-16 md:py-20 px-6 text-center border-b border-stone-800 overflow-hidden">
+        {/* Resplandor sutil detrás del texto */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-70"
+          style={{
+            background: 'radial-gradient(ellipse 60% 80% at 50% 40%, rgba(217,119,6,0.16), transparent 70%)',
+          }}
+        />
+        <div className="relative max-w-xl mx-auto">
+          <span className="text-[10px] uppercase tracking-[0.35em] text-amber-500 font-medium mb-4 block">
             Plata Fina 925
           </span>
-          <h2 className="text-xl md:text-2xl font-light tracking-tight font-serif text-stone-100">
+          <div className="w-10 h-px bg-amber-600/40 mx-auto mb-5" />
+          <h2 className="text-3xl md:text-4xl font-light tracking-tight font-serif text-stone-100">
             Elegancia y Diseño Único
           </h2>
+          <p className="mt-4 text-xs md:text-sm text-stone-400 font-light tracking-wide">
+            Piezas en plata fina, seleccionadas para durar.
+          </p>
         </div>
       </div>
 
