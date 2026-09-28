@@ -1,51 +1,66 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { useCart } from './CartContext'
+import { CATEGORIAS } from './config'
+import { IconoBolsa } from './ui'
 import Logo from './Logo'
 
 function Header() {
   const { carrito } = useCart()
   const location = useLocation()
-  const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0)
+  const [searchParams] = useSearchParams()
 
-  // Si estamos en cualquier ruta de administración, ocultamos el botón del carrito
-  const esAdmin = location.pathname.startsWith('/admin')
+  // El panel de administración tiene su propia navegación
+  if (location.pathname.startsWith('/admin')) return null
+
+  const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0)
+  const categoriaActiva = location.pathname === '/' ? (searchParams.get('categoria') || 'Todo') : null
+
+  const claseNav = (activa) =>
+    `py-2 border-b transition-colors hover:text-oro ${activa ? 'border-tinta' : 'border-transparent'}`
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-stone-100 shadow-sm">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        
-        {/* Logo y Nombre de la Pyme */}
-        <Link to="/" className="flex items-center gap-3 group">
-          <Logo className="h-9 w-9 text-amber-700 group-hover:scale-105 transition-transform duration-300" />
-          <div className="flex flex-col">
-            <h1 className="text-2xl md:text-3xl font-semibold text-gray-950 tracking-tight">
-              SILVER <span className="font-light text-gray-500">925</span>
-            </h1>
-            <span className="-mt-1 text-[10px] md:text-xs font-light text-stone-500 tracking-wider">
-              JOYERÍA EN PLATA FINA
-            </span>
-          </div>
-        </Link>
+    <>
+      <div className="bg-tinta text-[#E9E4D8] h-8 sm:h-10 px-4 flex items-center justify-center gap-6 text-[10px] sm:text-xs uppercase tracking-[0.14em]">
+        <span>Plata fina ley 925</span>
+        <span className="hidden sm:inline text-gris-claro">·</span>
+        <span className="hidden sm:inline">Pedidos coordinados directamente por WhatsApp</span>
+      </div>
 
-        {/* Enlace al Carrito (Oculto si estamos en el panel de admin) */}
-        {!esAdmin && (
-          <Link 
-            to="/carrito" 
-            className="flex items-center gap-2 bg-stone-50 hover:bg-stone-100 border border-stone-200 px-4 py-2 rounded-xl transition-colors relative group"
+      <header className="sticky top-0 z-40 bg-white border-b border-linea">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-16 sm:h-[88px] flex items-center justify-between gap-6">
+          <Link to="/" className="flex items-center gap-3 group">
+            <Logo className="h-9 w-9 sm:h-10 sm:w-10 text-oro group-hover:scale-105 transition-transform duration-300" />
+            <span className="flex flex-col">
+              <span className="font-display text-[22px] sm:text-[26px] font-semibold tracking-[0.1em] leading-none">SILVER 925</span>
+              <span className="text-[8px] sm:text-[10px] tracking-[0.24em] text-gris mt-1">JOYERÍA EN PLATA FINA</span>
+            </span>
+          </Link>
+
+          <nav aria-label="Categorías" className="hidden lg:flex items-center gap-9 text-sm font-medium">
+            <Link to="/" state={{ irAlCatalogo: true }} className={claseNav(categoriaActiva === 'Todo')}>Catálogo</Link>
+            {CATEGORIAS.map(c => (
+              <Link key={c} to={`/?categoria=${c}`} state={{ irAlCatalogo: true }} className={claseNav(categoriaActiva === c)}>
+                {c}
+              </Link>
+            ))}
+          </nav>
+
+          <Link
+            to="/carrito"
+            aria-label={`Carrito, ${totalItems} ${totalItems === 1 ? 'pieza' : 'piezas'}`}
+            className="h-11 px-3 sm:px-[18px] rounded-full bg-tinta text-white flex items-center gap-2.5 text-sm font-semibold hover:bg-black transition-colors"
           >
-            <span className="text-lg">🛒</span>
-            <span className="font-medium text-sm text-gray-900 hidden sm:inline">Carrito</span>
-            
+            <IconoBolsa />
+            <span className="hidden sm:inline">Carrito</span>
             {totalItems > 0 && (
-              <span className="absolute -top-2 -right-2 bg-amber-700 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center shadow-md animate-pulse">
+              <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-oro text-white text-xs flex items-center justify-center">
                 {totalItems}
               </span>
             )}
           </Link>
-        )}
-        
-      </div>
-    </header>
+        </div>
+      </header>
+    </>
   )
 }
 

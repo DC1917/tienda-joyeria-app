@@ -16,18 +16,22 @@ export function CartProvider({ children }) {
   const [carrito, setCarrito] = useState(cargarCarritoGuardado)
 
   useEffect(() => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(carrito))
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(carrito))
+    } catch {
+      // Sin almacenamiento disponible (modo privado): el carrito sigue funcionando en memoria
+    }
   }, [carrito])
 
-  function agregarAlCarrito(producto) {
+  function agregarAlCarrito(producto, cantidad = 1) {
     setCarrito(prev => {
       const existente = prev.find(item => item.id === producto.id)
       if (existente) {
         return prev.map(item =>
-          item.id === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item
+          item.id === producto.id ? { ...item, cantidad: item.cantidad + cantidad } : item
         )
       }
-      return [...prev, { ...producto, cantidad: 1 }]
+      return [...prev, { ...producto, cantidad }]
     })
   }
 

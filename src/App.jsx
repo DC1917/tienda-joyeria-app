@@ -1,11 +1,34 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from './firebase'
+import { CATEGORIAS, fichaCorta, formatoPrecio, linkWhatsApp } from './config'
+import { Cargando, FotoPieza, IconoChat, IconoEscudo, IconoFicha } from './ui'
+
+function TarjetaProducto({ p }) {
+  return (
+    <Link to={`/producto/${p.id}`} className="group flex flex-col gap-4">
+      <FotoPieza src={p.fotoPortada} alt={p.nombre} zoom className="aspect-square rounded" />
+      <div className="flex flex-col gap-1.5">
+        {p.categoria && (
+          <span className="text-[11px] uppercase tracking-[0.18em] text-gris">{p.categoria}</span>
+        )}
+        <span className="text-[15px] sm:text-[17px] font-medium group-hover:text-oro transition-colors">{p.nombre}</span>
+        <span className="text-xs sm:text-[13px] text-gris">{fichaCorta(p)}</span>
+        <span className="text-base sm:text-lg font-bold mt-1">{formatoPrecio(p.precio)}</span>
+      </div>
+    </Link>
+  )
+}
 
 function App() {
   const [productos, setProductos] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const location = useLocation()
+  const catalogoRef = useRef(null)
+
+  const categoria = searchParams.get('categoria') || 'Todo'
 
   useEffect(() => {
     async function cargarProductos() {
@@ -17,104 +40,176 @@ function App() {
     cargarProductos()
   }, [])
 
-  if (cargando) return (
-    <div className="min-h-screen bg-[#fafaf9] flex items-center justify-center">
-      <p className="text-stone-400 tracking-[0.2em] text-xs uppercase animate-pulse">Cargando vitrina...</p>
-    </div>
-  )
+  // Al llegar desde el menú de categorías, bajamos directo al catálogo
+  useEffect(() => {
+    if (!cargando && location.state?.irAlCatalogo) {
+      catalogoRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [location.key, location.state, cargando])
+
+  if (cargando) return <Cargando texto="Cargando vitrina..." />
+
+  const visibles = productos.filter(p => p.disponible !== false)
+  const filtrados = categoria === 'Todo' ? visibles : visibles.filter(p => p.categoria === categoria)
+  const destacado = visibles[0]
+
+  function elegirCategoria(c) {
+    setSearchParams(c === 'Todo' ? {} : { categoria: c }, { replace: true })
+  }
 
   return (
-    <div className="min-h-screen bg-[#f7f7f6] text-gray-900 pb-24">
-      
-      {/* 1. BANNER HERO */}
-      <div className="relative bg-stone-950 text-stone-100 py-16 md:py-20 px-6 text-center border-b border-stone-800 overflow-hidden">
-        {/* Resplandor sutil detrás del texto */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-70"
-          style={{
-            background: 'radial-gradient(ellipse 60% 80% at 50% 40%, rgba(217,119,6,0.16), transparent 70%)',
-          }}
-        />
-        <div className="relative max-w-xl mx-auto">
-          <span className="text-[10px] uppercase tracking-[0.35em] text-amber-500 font-medium mb-4 block">
-            Plata Fina 925
+    <div className="min-h-screen bg-marfil text-tinta">
+
+      {/* HERO */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-4 pb-8 lg:py-14 grid lg:grid-cols-2 gap-6 lg:gap-16 items-center">
+        <div className="order-2 lg:order-1 flex flex-col gap-5 lg:gap-7">
+          <span className="text-[11px] sm:text-xs uppercase tracking-[0.3em] text-oro font-semibold">
+            Colección plata fina 925
           </span>
-          <div className="w-10 h-px bg-amber-600/40 mx-auto mb-5" />
-          <h2 className="text-3xl md:text-4xl font-light tracking-tight font-serif text-stone-100">
-            Elegancia y Diseño Único
-          </h2>
-          <p className="mt-4 text-xs md:text-sm text-stone-400 font-light tracking-wide">
-            Piezas en plata fina, seleccionadas para durar.
+          <h1 className="font-display font-medium text-[42px] sm:text-6xl lg:text-[80px] leading-[0.98] tracking-tight">
+            Elegancia y diseño único, para todos los días.
+          </h1>
+          <p className="text-base lg:text-[17px] leading-relaxed text-gris max-w-[480px]">
+            Cada pieza con su ficha técnica: peso, largo y ley del material. Arma tu pedido y lo coordinamos contigo por WhatsApp.
           </p>
+          <div className="flex flex-col sm:flex-row gap-3 mt-1">
+            <button
+              type="button"
+              onClick={() => catalogoRef.current?.scrollIntoView({ behavior: 'smooth' })}
+              className="h-13 px-7 bg-tinta text-white rounded-full text-[13px] uppercase tracking-[0.14em] font-semibold hover:bg-black transition-colors cursor-pointer"
+            >
+              Ver catálogo
+            </button>
+            <a
+              href={linkWhatsApp()}
+              target="_blank"
+              rel="noreferrer"
+              className="h-13 px-6 border border-tinta rounded-full flex items-center justify-center gap-2.5 text-[13px] uppercase tracking-[0.14em] font-semibold hover:bg-white transition-colors"
+            >
+              <IconoChat />
+              Escríbenos
+            </a>
+          </div>
+        </div>
+
+        <div className="order-1 lg:order-2 relative">
+          {destacado ? (
+            <Link to={`/producto/${destacado.id}`} className="group block">
+              <FotoPieza src={destacado.fotoPortada} alt={destacado.nombre} zoom iconSize={64} className="h-72 sm:h-[420px] lg:h-[508px] rounded" />
+              <div className="absolute left-4 bottom-4 sm:left-6 sm:bottom-6 bg-white px-[18px] py-3.5 rounded flex flex-col gap-1">
+                <span className="text-sm font-semibold">{destacado.nombre}</span>
+                <span className="text-xs text-gris">{fichaCorta(destacado)}</span>
+              </div>
+            </Link>
+          ) : (
+            <FotoPieza iconSize={64} className="h-72 sm:h-[420px] lg:h-[508px] rounded" />
+          )}
+        </div>
+      </section>
+
+      {/* SELLOS DE CONFIANZA */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+        <div className="border-y border-linea grid sm:grid-cols-3 gap-5 sm:gap-8 py-6 sm:py-7">
+          {[
+            { Icono: IconoEscudo, titulo: 'Calidad garantizada', texto: 'Plata fina con ley 925' },
+            { Icono: IconoFicha, titulo: 'Ficha técnica en cada pieza', texto: 'Peso, largo y ley del material' },
+            { Icono: IconoChat, titulo: 'Compra directa por WhatsApp', texto: 'Coordinas tu pedido con la tienda' },
+          ].map(({ Icono, titulo, texto }) => (
+            <div key={titulo} className="flex items-center gap-3.5">
+              <Icono size={24} className="text-oro shrink-0" />
+              <span className="flex flex-col gap-0.5">
+                <strong className="text-sm font-semibold">{titulo}</strong>
+                <span className="text-[13px] text-gris">{texto}</span>
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* 2. CONTENEDOR DEL CATÁLOGO */}
-      <div className="max-w-7xl mx-auto px-6 mt-10">
-        
-        <div className="flex justify-between items-end mb-8 border-b border-stone-200/80 pb-4">
-          <div>
-            <h3 className="text-xl font-medium tracking-tight text-stone-900 uppercase font-serif">
-              Catálogo General
-            </h3>
-            <p className="text-xs text-stone-500 mt-0.5 font-light">Selecciona una pieza para ver especificaciones y cotizar</p>
+      {/* CATÁLOGO */}
+      <section ref={catalogoRef} id="catalogo" className="scroll-mt-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-12 lg:pt-[72px] pb-10 flex flex-col gap-6 lg:gap-8">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+          <div className="flex flex-col gap-2">
+            <h2 className="font-display font-medium text-[32px] lg:text-5xl leading-none">Catálogo general</h2>
+            <p className="text-sm text-gris">
+              {filtrados.length} {filtrados.length === 1 ? 'pieza disponible' : 'piezas disponibles'} · Selecciona una pieza para ver su ficha
+            </p>
           </div>
-          <span className="text-xs font-medium text-stone-600 bg-stone-200/70 px-3 py-1 rounded-full tracking-wider">
-            {productos.length} {productos.length === 1 ? 'disponible' : 'disponibles'}
-          </span>
+          <div className="flex gap-2 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+            {['Todo', ...CATEGORIAS].map(c => {
+              const activa = c === categoria
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  aria-pressed={activa}
+                  onClick={() => elegirCategoria(c)}
+                  className={`shrink-0 h-10 px-[18px] rounded-full border text-[13px] font-semibold transition-colors cursor-pointer ${
+                    activa ? 'bg-tinta text-white border-tinta' : 'bg-white text-tinta border-linea hover:border-tinta'
+                  }`}
+                >
+                  {c}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
-        {productos.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-2xl border border-stone-200 shadow-sm">
-            <p className="text-stone-400 font-light text-sm">No hay joyas registradas por el momento.</p>
+        {filtrados.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded border border-linea">
+            <p className="text-gris text-sm">
+              {visibles.length === 0 ? 'No hay joyas publicadas por el momento.' : 'No hay piezas en esta categoría por ahora.'}
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {productos.map(p => (
-              <Link
-                to={`/producto/${p.id}`}
-                key={p.id}
-                className="group relative bg-white border border-stone-200/90 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:border-amber-600/30 transition-all duration-500 flex flex-col transform hover:-translate-y-1"
-              >
-                {/* Contenedor de la imagen con zoom suave */}
-                <div className="overflow-hidden aspect-square bg-stone-100 relative">
-                  <img
-                    src={p.fotoPortada}
-                    alt={p.nombre}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-                
-                {/* Información de la joya */}
-                <div className="p-5 flex flex-col flex-grow justify-between bg-white">
-                  <div>
-                    <h4 className="font-normal text-stone-900 group-hover:text-amber-700 transition-colors text-base mb-1 tracking-tight">
-                      {p.nombre}
-                    </h4>
-                    <p className="text-lg font-medium text-amber-700 tracking-tight">
-                      ${p.precio?.toLocaleString('es-CL')}
-                    </p>
-                  </div>
-                  
-                  {/* Ficha técnica limpia */}
-                  <div className="grid grid-cols-3 gap-1.5 text-[11px] text-stone-500 border-t border-stone-100 pt-3 mt-4 text-center font-light">
-                    <span className="bg-stone-50 border border-stone-100 py-1 rounded-md"><strong>{p.pesoGramos || '-'}</strong>g</span>
-                    <span className="bg-stone-50 border border-stone-100 py-1 rounded-md"><strong>{p.largoCm || '-'}</strong>cm</span>
-                    <span className="bg-stone-50 border border-stone-100 py-1 rounded-md">Ley <strong>{p.ley || '925'}</strong></span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-6 sm:gap-x-8 sm:gap-y-10">
+            {filtrados.map(p => <TarjetaProducto key={p.id} p={p} />)}
           </div>
         )}
-      </div>
-      
-      {/* Footer elegante */}
-      <footer className="mt-28 border-t border-stone-200/80 pt-8 pb-4 text-center text-xs text-stone-400 tracking-widest uppercase">
-        <p>© {new Date().getFullYear()} Silver 925 CL — Calidad garantizada</p>
+      </section>
+
+      {/* BANNER WHATSAPP */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 mt-6 lg:mt-10">
+        <div className="bg-tinta text-marfil rounded px-6 py-10 lg:px-16 lg:py-14 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="flex flex-col gap-2.5">
+            <h3 className="font-display font-medium text-3xl lg:text-[40px] leading-tight">¿Buscas una pieza en particular?</h3>
+            <p className="text-[15px] text-[#C9C3B7]">Escríbenos y te ayudamos a elegir medida, largo o modelo.</p>
+          </div>
+          <a
+            href={linkWhatsApp('Hola! Estoy buscando una pieza en particular.')}
+            target="_blank"
+            rel="noreferrer"
+            className="h-13 px-6 bg-whatsapp hover:bg-whatsapp-oscuro text-white rounded-full flex items-center justify-center gap-2.5 text-sm font-semibold transition-colors shrink-0"
+          >
+            <IconoChat />
+            Hablar por WhatsApp
+          </a>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 mt-16 lg:mt-[72px] py-10 lg:py-12 border-t border-linea flex flex-col sm:flex-row justify-between gap-6 text-[13px] text-gris">
+        <div className="flex flex-col gap-2">
+          <span className="font-display text-[22px] font-semibold tracking-[0.1em] text-tinta">SILVER 925 CL</span>
+          <span>© {new Date().getFullYear()} Silver 925 CL — Calidad garantizada</span>
+        </div>
+        <div className="flex gap-6 sm:gap-8">
+          <button type="button" onClick={() => catalogoRef.current?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-oro cursor-pointer">Catálogo</button>
+          <Link to="/carrito" className="hover:text-oro">Carrito</Link>
+          <a href={linkWhatsApp()} target="_blank" rel="noreferrer" className="hover:text-oro">WhatsApp</a>
+        </div>
       </footer>
 
+      {/* Botón flotante de WhatsApp (móvil) */}
+      <a
+        href={linkWhatsApp()}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Escribir por WhatsApp"
+        className="lg:hidden fixed right-4 bottom-6 z-30 w-14 h-14 rounded-full bg-whatsapp text-white flex items-center justify-center shadow-[0_6px_18px_rgba(26,26,24,0.25)]"
+      >
+        <IconoChat size={24} />
+      </a>
     </div>
   )
 }

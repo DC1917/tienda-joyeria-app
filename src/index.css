@@ -1,11 +1,36 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;500;600&family=Inter:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 
+/* Paleta y tipografías de Silver 925 CL */
 @theme {
-  --font-serif: "Cormorant Garamond", Georgia, serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-tinta: #1A1A18;
+  --color-marfil: #F5F3EE;
+  --color-linea: #E2DDD3;
+  --color-linea-suave: #EDE9E1;
+  --color-campo: #D6D0C4;
+  --color-gris: #625D55;
+  --color-gris-claro: #8C857A;
+  --color-oro: #8A6A2F;
+  --color-whatsapp: #1E7A46;
+  --color-whatsapp-oscuro: #17613A;
+  --color-exito-fondo: #EEF3EC;
+  --color-exito-borde: #C6D8C3;
+  --color-exito-texto: #1F4D2B;
+  --color-peligro: #9A3B2E;
+  --color-foto: #E3DED4;
+
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Manrope", system-ui, sans-serif;
 }
 
 body {
+  margin: 0;
+  background: var(--color-marfil);
+  color: var(--color-tinta);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-oro);
+  outline-offset: 2px;
 }

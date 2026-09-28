@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore'
 import { db } from './firebase'
+import { CATEGORIAS, fichaCorta, formatoPrecio } from './config'
+import { FotoPieza, IconoBuscar, IconoCerrar, IconoLapiz, IconoMas, IconoPapelera, IconoSubir } from './ui'
 
 const CLOUD_NAME = 'lxekw8dr'
 const UPLOAD_PRESET = 'n9hprk0h'
@@ -18,23 +20,40 @@ async function subirFoto(file) {
   return data.secure_url
 }
 
+const claseEtiqueta = 'flex flex-col gap-2 text-[11px] uppercase tracking-[0.14em] font-semibold text-gris'
+const claseCampo = 'w-full h-12 px-3.5 border border-campo rounded bg-white text-[15px] text-tinta normal-case tracking-normal font-normal focus:outline-none focus:border-tinta transition-colors'
+
+// Vista previa local de un archivo elegido
+function usePrevia(archivo) {
+  const url = useMemo(() => (archivo ? URL.createObjectURL(archivo) : ''), [archivo])
+  useEffect(() => () => { if (url) URL.revokeObjectURL(url) }, [url])
+  return url
+}
+
 function AdminProductos() {
   const [productos, setProductos] = useState([])
+  const [busqueda, setBusqueda] = useState('')
   const [nombre, setNombre] = useState('')
+  const [categoria, setCategoria] = useState('')
   const [pesoGramos, setPesoGramos] = useState('')
   const [largoCm, setLargoCm] = useState('')
   const [ley, setLey] = useState('925')
   const [precio, setPrecio] = useState('')
   const [archivoPortada, setArchivoPortada] = useState(null)
   const [archivosGaleria, setArchivosGaleria] = useState([])
-  
+
   // Estados para controlar el modo de edición
   const [editandoId, setEditandoId] = useState(null)
+  const [disponibleActual, setDisponibleActual] = useState(true)
   const [fotoPortadaActual, setFotoPortadaActual] = useState('')
   const [fotosGaleriaActual, setFotosGaleriaActual] = useState([])
 
   const [subiendo, setSubiendo] = useState(false)
-  const [mensaje, setMensaje] = useState('')
+  const [mensaje, setMensaje] = useState({ texto: '', error: false })
+  const [formKey, setFormKey] = useState(0) // reinicia los <input type="file">
+  const formRef = useRef(null)
+
+  const previaPortada = usePrevia(archivoPortada)
 
   async function cargarProductos() {
     const snapshot = await getDocs(collection(db, 'productos'))
@@ -45,40 +64,61 @@ function AdminProductos() {
     cargarProductos()
   }, [])
 
+  function irAlFormulario() {
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   // Cargar datos en el formulario al hacer clic en "Editar"
   function iniciarEdicion(p) {
     setEditandoId(p.id)
     setNombre(p.nombre || '')
+    setCategoria(p.categoria || '')
     setPesoGramos(p.pesoGramos || '')
     setLargoCm(p.largoCm || '')
     setLey(p.ley || '925')
     setPrecio(p.precio || '')
+    setDisponibleActual(p.disponible !== false)
     setFotoPortadaActual(p.fotoPortada || '')
     setFotosGaleriaActual(p.fotosGaleria || [])
     setArchivoPortada(null)
     setArchivosGaleria([])
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setFormKey(k => k + 1)
+    setMensaje({ texto: '', error: false })
+    irAlFormulario()
   }
 
   // Cancelar edición y limpiar formulario
-  function cancelarEdicion() {
+  function limpiarFormulario() {
     setEditandoId(null)
     setNombre('')
+    setCategoria('')
     setPesoGramos('')
     setLargoCm('')
     setLey('925')
     setPrecio('')
+    setDisponibleActual(true)
     setFotoPortadaActual('')
     setFotosGaleriaActual([])
     setArchivoPortada(null)
     setArchivosGaleria([])
-    setMensaje('')
+    setFormKey(k => k + 1)
+  }
+
+  function cancelarEdicion() {
+    limpiarFormulario()
+    setMensaje({ texto: '', error: false })
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
+
+    if (!editandoId && !archivoPortada) {
+      setMensaje({ texto: 'Falta la foto de portada.', error: true })
+      return
+    }
+
     setSubiendo(true)
-    setMensaje(editandoId ? 'Actualizando producto...' : 'Subiendo fotos a la nube...')
+    setMensaje({ texto: editandoId ? 'Actualizando producto...' : 'Subiendo fotos a la nube...', error: false })
 
     try {
       let urlPortada = fotoPortadaActual
@@ -94,214 +134,282 @@ function AdminProductos() {
 
       const datosProducto = {
         nombre,
+        categoria,
         pesoGramos: Number(pesoGramos),
         largoCm: Number(largoCm),
         ley,
         precio: Number(precio),
         fotoPortada: urlPortada,
         fotosGaleria: urlsGaleria,
-        disponible: true,
+        disponible: editandoId ? disponibleActual : true,
       }
 
       if (editandoId) {
-        // Actualizar registro existente
         await updateDoc(doc(db, 'productos', editandoId), datosProducto)
-        setMensaje('¡Producto actualizado correctamente!')
       } else {
-        // Crear nuevo registro
-        if (!archivoPortada) {
-          setMensaje('Falta la foto de portada.')
-          setSubiendo(false)
-          return
-        }
         await addDoc(collection(db, 'productos'), datosProducto)
-        setMensaje('¡Producto agregado correctamente!')
       }
 
-      cancelarEdicion()
+      limpiarFormulario()
+      setMensaje({ texto: editandoId ? '¡Producto actualizado correctamente!' : '¡Producto agregado correctamente!', error: false })
       cargarProductos()
-    } catch (err) {
-      setMensaje('Ocurrió un error al guardar el producto.')
+    } catch {
+      setMensaje({ texto: 'Ocurrió un error al guardar el producto.', error: true })
     }
 
     setSubiendo(false)
   }
 
-  async function handleEliminar(id) {
-    if (!confirm('¿Estás seguro de eliminar este producto?')) return
-    await deleteDoc(doc(db, 'productos', id))
+  async function handleEliminar(p) {
+    if (!confirm(`¿Estás seguro de eliminar "${p.nombre}"?`)) return
+    await deleteDoc(doc(db, 'productos', p.id))
+    if (editandoId === p.id) cancelarEdicion()
     cargarProductos()
   }
 
+  // Mostrar / ocultar en la tienda
+  async function alternarDisponible(p) {
+    const nuevo = p.disponible === false
+    setProductos(prev => prev.map(x => (x.id === p.id ? { ...x, disponible: nuevo } : x)))
+    if (editandoId === p.id) setDisponibleActual(nuevo)
+    try {
+      await updateDoc(doc(db, 'productos', p.id), { disponible: nuevo })
+    } catch {
+      setProductos(prev => prev.map(x => (x.id === p.id ? { ...x, disponible: !nuevo } : x)))
+    }
+  }
+
+  const visibles = productos.filter(p => p.disponible !== false).length
+  const listado = productos.filter(p => (p.nombre || '').toLowerCase().includes(busqueda.trim().toLowerCase()))
+
   return (
-    <div className="space-y-10">
-      
-      {/* Formulario de Agregar / Editar Producto */}
-      <div className="bg-white p-8 md:p-10 rounded-3xl border border-stone-200/80 shadow-sm">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-light font-serif tracking-tight text-stone-900">
-            {editandoId ? 'Editar pieza de joyería' : 'Agregar nueva pieza'}
-          </h2>
-          {editandoId && (
-            <button 
-              type="button" 
-              onClick={cancelarEdicion}
-              className="text-xs uppercase tracking-widest text-stone-500 hover:text-stone-900 underline cursor-pointer"
-            >
-              Cancelar edición
-            </button>
-          )}
+    <div className="flex flex-col gap-7 max-w-[1400px]">
+
+      {/* Encabezado */}
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-5">
+        <div className="flex flex-col gap-1.5">
+          <h1 className="font-display font-medium text-[40px] lg:text-5xl leading-none">Productos</h1>
+          <p className="text-sm text-gris">
+            {productos.length} {productos.length === 1 ? 'pieza' : 'piezas'} en el catálogo · {visibles} visibles en la tienda
+          </p>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          
-          <div>
-            <label className="block text-xs uppercase tracking-widest text-stone-500 font-medium mb-2">Nombre de la pieza</label>
+        <div className="flex flex-col sm:flex-row gap-2.5 sm:items-center">
+          <label className="h-11 sm:w-[280px] border border-campo rounded-full bg-white flex items-center gap-2.5 px-4 text-gris focus-within:border-tinta">
+            <IconoBuscar size={16} />
+            <span className="sr-only">Buscar pieza</span>
             <input
-              type="text"
-              placeholder="Ej: Anillo Solitario de Plata"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              className="w-full border border-stone-200 rounded-2xl p-3.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-400 transition-all text-stone-900"
-              required
+              type="search"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar pieza"
+              className="flex-grow min-w-0 bg-transparent outline-none text-sm text-tinta"
             />
+          </label>
+          <button
+            type="button"
+            onClick={() => { cancelarEdicion(); irAlFormulario() }}
+            className="h-11 px-5 rounded-full bg-tinta hover:bg-black text-white text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+          >
+            <IconoMas size={16} />
+            Nueva pieza
+          </button>
+        </div>
+      </div>
+
+      <div className="grid xl:grid-cols-[minmax(0,1fr)_440px] gap-7 items-start">
+
+        {/* Formulario de agregar / editar */}
+        <form
+          ref={formRef}
+          key={formKey}
+          onSubmit={handleSubmit}
+          className="xl:order-2 xl:sticky xl:top-8 scroll-mt-6 bg-white border border-linea rounded p-5 sm:p-7 flex flex-col gap-[18px]"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-display font-medium text-[30px] leading-tight">
+              {editandoId ? 'Editar pieza' : 'Agregar nueva pieza'}
+            </h2>
+            {editandoId && (
+              <button type="button" onClick={cancelarEdicion} className="h-9 text-[13px] font-semibold text-gris underline hover:text-tinta cursor-pointer shrink-0">
+                Cancelar edición
+              </button>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs uppercase tracking-widest text-stone-500 font-medium mb-2">Peso (g)</label>
-              <input
-                type="number"
-                placeholder="0.0"
-                value={pesoGramos}
-                onChange={(e) => setPesoGramos(e.target.value)}
-                className="w-full border border-stone-200 rounded-2xl p-3.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-400 transition-all text-stone-900"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs uppercase tracking-widest text-stone-500 font-medium mb-2">Largo (cm)</label>
-              <input
-                type="number"
-                placeholder="0.0"
-                value={largoCm}
-                onChange={(e) => setLargoCm(e.target.value)}
-                className="w-full border border-stone-200 rounded-2xl p-3.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-400 transition-all text-stone-900"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs uppercase tracking-widest text-stone-500 font-medium mb-2">Ley</label>
-              <input
-                type="text"
-                placeholder="925"
-                value={ley}
-                onChange={(e) => setLey(e.target.value)}
-                className="w-full border border-stone-200 rounded-2xl p-3.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-400 transition-all text-stone-900"
-                required
-              />
-            </div>
+          <label className={claseEtiqueta}>
+            Nombre de la pieza
+            <input type="text" placeholder="Ej: Anillo Solitario de Plata" value={nombre} onChange={(e) => setNombre(e.target.value)} className={claseCampo} required />
+          </label>
+
+          <label className={claseEtiqueta}>
+            Categoría
+            <select value={categoria} onChange={(e) => setCategoria(e.target.value)} className={claseCampo}>
+              <option value="">Sin categoría</option>
+              {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </label>
+
+          <div className="grid grid-cols-3 gap-3">
+            <label className={claseEtiqueta}>
+              Peso (g)
+              <input type="number" step="any" min="0" placeholder="0.0" value={pesoGramos} onChange={(e) => setPesoGramos(e.target.value)} className={claseCampo} required />
+            </label>
+            <label className={claseEtiqueta}>
+              Largo (cm)
+              <input type="number" step="any" min="0" placeholder="0.0" value={largoCm} onChange={(e) => setLargoCm(e.target.value)} className={claseCampo} required />
+            </label>
+            <label className={claseEtiqueta}>
+              Ley
+              <input type="text" placeholder="925" value={ley} onChange={(e) => setLey(e.target.value)} className={claseCampo} required />
+            </label>
           </div>
 
-          <div>
-            <label className="block text-xs uppercase tracking-widest text-stone-500 font-medium mb-2">Precio ($ CLP)</label>
-            <input
-              type="number"
-              placeholder="Ej: 24990"
-              value={precio}
-              onChange={(e) => setPrecio(e.target.value)}
-              className="w-full border border-stone-200 rounded-2xl p-3.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-400 transition-all text-stone-900"
-              required
-            />
+          <label className={claseEtiqueta}>
+            Precio (CLP)
+            <input type="number" min="0" placeholder="Ej: 24990" value={precio} onChange={(e) => setPrecio(e.target.value)} className={claseCampo} required />
+          </label>
+
+          {/* Portada */}
+          <div className="flex flex-col gap-2">
+            <span className="text-[11px] uppercase tracking-[0.14em] font-semibold text-gris">
+              {editandoId ? 'Cambiar foto de portada (opcional)' : 'Foto de portada *'}
+            </span>
+            <label className="min-h-[120px] border border-dashed border-[#B9B2A4] rounded bg-[#FAF9F6] hover:border-tinta flex items-center gap-4 p-4 text-gris text-[13px] cursor-pointer transition-colors">
+              {(previaPortada || fotoPortadaActual) ? (
+                <img src={previaPortada || fotoPortadaActual} alt="" className="w-20 h-20 object-cover rounded shrink-0" />
+              ) : (
+                <span className="w-20 h-20 rounded bg-foto flex items-center justify-center shrink-0"><IconoSubir size={24} /></span>
+              )}
+              <span className="flex flex-col gap-1">
+                <strong className="text-tinta font-semibold">
+                  {archivoPortada ? archivoPortada.name : (fotoPortadaActual ? 'Reemplazar foto principal' : 'Sube la foto principal')}
+                </strong>
+                <span>JPG o PNG, idealmente cuadrada</span>
+              </span>
+              <input type="file" accept="image/*" onChange={(e) => setArchivoPortada(e.target.files[0] || null)} className="sr-only" />
+            </label>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            <div className="p-4 border border-stone-200 rounded-2xl bg-stone-50/30">
-              <label className="block text-xs uppercase tracking-widest text-stone-700 font-medium mb-2">
-                {editandoId ? 'Cambiar foto portada (opcional)' : 'Foto de portada *'}
+          {/* Galería */}
+          <div className="flex flex-col gap-2">
+            <span className="text-[11px] uppercase tracking-[0.14em] font-semibold text-gris">Galería</span>
+            <div className="grid grid-cols-4 gap-2">
+              {fotosGaleriaActual.map((url) => (
+                <div key={url} className="relative aspect-square">
+                  <img src={url} alt="" className="w-full h-full object-cover rounded" />
+                  <button
+                    type="button"
+                    onClick={() => setFotosGaleriaActual(prev => prev.filter(u => u !== url))}
+                    aria-label="Quitar foto de la galería"
+                    className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-tinta text-white flex items-center justify-center cursor-pointer"
+                  >
+                    <IconoCerrar size={12} />
+                  </button>
+                </div>
+              ))}
+              <label className="aspect-square border border-dashed border-[#B9B2A4] rounded flex flex-col items-center justify-center gap-1 text-gris hover:border-tinta cursor-pointer transition-colors">
+                <IconoMas size={20} />
+                <span className="text-[10px] font-semibold">
+                  {archivosGaleria.length ? `${archivosGaleria.length} nueva(s)` : 'Agregar'}
+                </span>
+                <input type="file" accept="image/*" multiple onChange={(e) => setArchivosGaleria(Array.from(e.target.files))} className="sr-only" />
               </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setArchivoPortada(e.target.files[0])}
-                className="w-full text-xs text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-medium file:bg-stone-900 file:text-white hover:file:bg-stone-800 cursor-pointer"
-                required={!editandoId}
-              />
-              {editandoId && fotoPortadaActual && (
-                <p className="text-[10px] text-stone-400 mt-2">Ya tiene una portada asignada (si subes otra, se reemplazará).</p>
-              )}
-            </div>
-
-            <div className="p-4 border border-stone-200 rounded-2xl bg-stone-50/30">
-              <label className="block text-xs uppercase tracking-widest text-stone-700 font-medium mb-2">Agregar más a galería</label>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={(e) => setArchivosGaleria(Array.from(e.target.files))}
-                className="w-full text-xs text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-medium file:bg-stone-200 file:text-stone-800 hover:file:bg-stone-300 cursor-pointer"
-              />
-              {editandoId && fotosGaleriaActual.length > 0 && (
-                <p className="text-[10px] text-stone-400 mt-2">Tiene {fotosGaleriaActual.length} foto(s) en galería guardadas.</p>
-              )}
             </div>
           </div>
 
-          {mensaje && (
-            <div className="p-3 rounded-xl bg-stone-100 text-stone-800 text-xs text-center font-light">
-              {mensaje}
+          {mensaje.texto && (
+            <div
+              role="status"
+              className={`px-3.5 py-3 rounded text-[13px] text-center border ${
+                mensaje.error ? 'bg-[#FBEFEC] border-[#EBC9C1] text-peligro' : 'bg-exito-fondo border-exito-borde text-exito-texto'
+              }`}
+            >
+              {mensaje.texto}
             </div>
           )}
 
           <button
             type="submit"
             disabled={subiendo}
-            className="w-full bg-stone-950 hover:bg-stone-900 text-white py-4 rounded-2xl font-medium text-xs uppercase tracking-widest transition-all shadow-sm active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+            className="mt-1 h-[54px] rounded-full bg-tinta hover:bg-black text-white text-[13px] uppercase tracking-[0.16em] font-bold transition-colors disabled:opacity-50 cursor-pointer"
           >
             {subiendo ? 'Guardando en la nube...' : (editandoId ? 'Actualizar producto' : 'Guardar producto')}
           </button>
         </form>
-      </div>
 
-      {/* Listado de Productos Cargados */}
-      <div className="bg-white p-8 md:p-10 rounded-3xl border border-stone-200/80 shadow-sm">
-        <h2 className="text-xl font-light font-serif tracking-tight text-stone-900 mb-6">
-          Catálogo actual ({productos.length})
-        </h2>
-
-        {productos.length === 0 ? (
-          <p className="text-xs text-stone-500 font-light text-center py-6">No hay productos registrados todavía.</p>
-        ) : (
-          <div className="divide-y divide-stone-100">
-            {productos.map(p => (
-              <div key={p.id} className="py-4 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <img src={p.fotoPortada} alt={p.nombre} className="w-14 h-14 object-cover rounded-2xl border border-stone-100 shadow-xs" />
-                  <div>
-                    <p className="font-normal text-stone-900 text-sm">{p.nombre}</p>
-                    <p className="text-amber-700 text-xs font-semibold mt-0.5">${p.precio?.toLocaleString('es-CL')}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => iniciarEdicion(p)} 
-                    className="text-xs text-stone-600 hover:text-stone-900 font-light tracking-wide uppercase transition-colors cursor-pointer px-3 py-2 border border-stone-200 rounded-xl"
-                  >
-                    Editar
-                  </button>
-                  <button 
-                    onClick={() => handleEliminar(p.id)} 
-                    className="text-xs text-stone-400 hover:text-red-600 font-light tracking-wide uppercase transition-colors cursor-pointer px-3 py-2"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </div>
-            ))}
+        {/* Listado de productos */}
+        <div className="xl:order-1 bg-white border border-linea rounded">
+          <div className="hidden md:grid grid-cols-[minmax(0,1fr)_110px_80px_100px] gap-4 px-5 py-3.5 border-b border-linea text-[11px] uppercase tracking-[0.14em] text-gris font-semibold">
+            <span>Pieza</span><span>Precio</span><span>Visible</span><span className="text-right">Acciones</span>
           </div>
-        )}
-      </div>
 
+          {listado.length === 0 ? (
+            <p className="text-sm text-gris text-center py-12">
+              {productos.length === 0 ? 'No hay productos registrados todavía.' : 'Ninguna pieza coincide con la búsqueda.'}
+            </p>
+          ) : (
+            <ul className="divide-y divide-linea-suave">
+              {listado.map(p => {
+                const visible = p.disponible !== false
+                return (
+                  <li
+                    key={p.id}
+                    className={`px-4 sm:px-5 py-3 grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1fr)_110px_80px_100px] gap-x-4 gap-y-2 items-center ${
+                      editandoId === p.id ? 'bg-[#FAF6EC]' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0 col-span-2 md:col-span-1">
+                      <FotoPieza src={p.fotoPortada} alt="" iconSize={20} className="w-12 h-12 rounded shrink-0" />
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <span className="font-semibold text-sm truncate">{p.nombre}</span>
+                        <span className="text-xs text-gris truncate">
+                          {[p.categoria, fichaCorta(p), `${(p.fotosGaleria?.length || 0) + 1} fotos`].filter(Boolean).join(' · ')}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-sm font-bold">{formatoPrecio(p.precio)}</span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={visible}
+                      aria-label={`Mostrar ${p.nombre} en la tienda`}
+                      onClick={() => alternarDisponible(p)}
+                      className={`hidden md:flex w-12 h-7 rounded-full p-[3px] transition-colors cursor-pointer ${visible ? 'bg-whatsapp justify-end' : 'bg-[#CFC9BD] justify-start'}`}
+                    >
+                      <span className="w-[22px] h-[22px] rounded-full bg-white block" />
+                    </button>
+                    <div className="flex justify-end gap-1 col-start-2 row-start-2 md:col-start-auto md:row-start-auto">
+                      <button
+                        type="button"
+                        onClick={() => alternarDisponible(p)}
+                        className="md:hidden h-11 px-3 text-xs font-semibold text-gris underline cursor-pointer"
+                      >
+                        {visible ? 'Ocultar' : 'Mostrar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => iniciarEdicion(p)}
+                        aria-label={`Editar ${p.nombre}`}
+                        className="w-11 h-11 rounded-full border border-linea bg-white hover:border-tinta flex items-center justify-center cursor-pointer transition-colors"
+                      >
+                        <IconoLapiz size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleEliminar(p)}
+                        aria-label={`Eliminar ${p.nombre}`}
+                        className="w-11 h-11 rounded-full text-peligro hover:bg-[#FBEFEC] flex items-center justify-center cursor-pointer transition-colors"
+                      >
+                        <IconoPapelera size={16} />
+                      </button>
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

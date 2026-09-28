@@ -1,6 +1,11 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from './firebase'
+import Logo from './Logo'
+
+const claseCampo = 'h-13 px-4 border border-campo rounded bg-white text-[15px] text-tinta normal-case tracking-normal font-normal focus:outline-none focus:border-tinta transition-colors'
+const claseEtiqueta = 'flex flex-col gap-2 text-xs uppercase tracking-[0.14em] font-semibold text-gris'
 
 function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState('')
@@ -15,49 +20,66 @@ function AdminLogin({ onLogin }) {
     try {
       await signInWithEmailAndPassword(auth, email, password)
       onLogin()
-    } catch (err) {
+    } catch {
       setError('Correo o contraseña incorrectos.')
     }
     setCargando(false)
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-6">
-      <div className="bg-white p-8 md:p-10 rounded-3xl border border-stone-200/80 shadow-sm max-w-md w-full">
-        
-        <div className="text-center mb-8">
-          <span className="text-2xl mb-2 block">🔒</span>
-          <h1 className="text-2xl font-light font-serif tracking-tight text-stone-900">Panel de Administración</h1>
-          <p className="text-xs text-stone-500 mt-1 font-light">Ingresa tus credenciales para gestionar el catálogo</p>
+    <div className="min-h-screen grid lg:grid-cols-2 text-tinta">
+      {/* Panel de marca */}
+      <div className="hidden lg:flex bg-tinta text-marfil px-20 py-16 flex-col justify-between">
+        <div className="flex items-center gap-3.5">
+          <Logo className="w-10 h-10 text-marfil" />
+          <span className="font-display text-[26px] font-semibold tracking-[0.1em]">SILVER 925</span>
         </div>
+        <div className="flex flex-col gap-5">
+          <h1 className="font-display font-medium text-7xl leading-none">Panel de administración</h1>
+          <p className="text-base leading-relaxed text-[#C9C3B7] max-w-[440px]">
+            Agrega, edita y publica las piezas de la vitrina. Los cambios se ven al instante en la tienda.
+          </p>
+        </div>
+        <span className="text-xs uppercase tracking-[0.14em] text-[#9D968A]">Acceso solo para el equipo de la tienda</span>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-xs uppercase tracking-widest text-stone-500 font-medium mb-2">Correo electrónico</label>
+      {/* Formulario */}
+      <div className="bg-marfil flex items-center justify-center px-6 py-16">
+        <form onSubmit={handleSubmit} className="w-full max-w-[400px] flex flex-col gap-[22px]">
+          <div className="flex flex-col gap-2">
+            <span className="lg:hidden font-display text-2xl font-semibold tracking-[0.1em] mb-4">SILVER 925</span>
+            <h2 className="font-display font-medium text-[40px] leading-none">Iniciar sesión</h2>
+            <p className="text-sm text-gris">Ingresa con tu cuenta de administrador.</p>
+          </div>
+
+          <label className={claseEtiqueta}>
+            Correo
             <input
               type="email"
+              autoComplete="email"
               placeholder="admin@silver925.cl"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-stone-200 rounded-2xl p-3.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-400 transition-all text-stone-900"
+              className={claseCampo}
               required
             />
-          </div>
+          </label>
 
-          <div>
-            <label className="block text-xs uppercase tracking-widest text-stone-500 font-medium mb-2">Contraseña</label>
+          <label className={claseEtiqueta}>
+            Contraseña
             <input
               type="password"
+              autoComplete="current-password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-stone-200 rounded-2xl p-3.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-400 transition-all text-stone-900"
+              className={claseCampo}
               required
             />
-          </div>
+          </label>
 
           {error && (
-            <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs text-center font-light">
+            <div role="alert" className="px-3.5 py-3 rounded bg-[#FBEFEC] border border-[#EBC9C1] text-peligro text-sm text-center">
               {error}
             </div>
           )}
@@ -65,12 +87,12 @@ function AdminLogin({ onLogin }) {
           <button
             type="submit"
             disabled={cargando}
-            className="w-full bg-stone-950 hover:bg-stone-900 text-white py-4 rounded-2xl font-medium text-xs uppercase tracking-widest transition-all shadow-sm active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+            className="mt-1.5 h-[54px] bg-tinta hover:bg-black text-white rounded-full text-[13px] uppercase tracking-[0.16em] font-bold transition-colors disabled:opacity-50 cursor-pointer"
           >
-            {cargando ? 'Verificando...' : 'Acceder al panel'}
+            {cargando ? 'Verificando...' : 'Ingresar'}
           </button>
+          <Link to="/" className="self-center text-[13px] text-gris underline hover:text-tinta">Volver a la tienda</Link>
         </form>
-
       </div>
     </div>
   )

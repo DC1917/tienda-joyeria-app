@@ -1,43 +1,35 @@
 import { Link } from 'react-router-dom'
 import { useCart } from './CartContext'
-import logoWhatsapp from './assets/logowhatsapp.png'
+import { fichaCorta, formatoPrecio, linkWhatsApp } from './config'
+import { Cantidad, FotoPieza, IconoChat, IconoPapelera, IconoVolver } from './ui'
 
 function Carrito() {
   const { carrito, actualizarCantidad, eliminarDelCarrito, vaciarCarrito } = useCart()
 
-  const calcularTotal = () => {
-    return carrito.reduce((total, item) => total + (item.precio * item.cantidad), 0)
+  const total = carrito.reduce((suma, item) => suma + (item.precio * item.cantidad), 0)
+  const unidades = carrito.reduce((suma, item) => suma + item.cantidad, 0)
+
+  const armarMensaje = () => {
+    let mensaje = 'Hola! Me interesa coordinar la compra de los siguientes artículos de Silver 925 CL:\n\n'
+    carrito.forEach((item, index) => {
+      mensaje += `${index + 1}. *${item.nombre}* (Cant: ${item.cantidad}) - ${formatoPrecio(item.precio * item.cantidad)}\n`
+    })
+    mensaje += `\n*Total a coordinar: ${formatoPrecio(total)}*`
+    return mensaje
   }
 
   const enviarWhatsApp = () => {
     if (carrito.length === 0) return
-
-    // Numero de teléfono de WhatsApp (sin el signo + ni espacios)
-    const telefono = "56920807921" 
-    
-    let mensaje = "Hola! Me interesa coordinar la compra de los siguientes artículos de Silver 925 CL:\n\n"
-    
-    carrito.forEach((item, index) => {
-      mensaje += `${index + 1}. *${item.nombre}* (Cant: ${item.cantidad}) - $${(item.precio * item.cantidad).toLocaleString('es-CL')}\n`
-    })
-    
-    mensaje += `\n*Total a coordinar: $${calcularTotal().toLocaleString('es-CL')}*`
-
-    const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`
-    window.open(url, '_blank')
+    window.open(linkWhatsApp(armarMensaje()), '_blank')
   }
 
   if (carrito.length === 0) {
     return (
-      <div className="min-h-screen bg-[#f7f7f6] text-gray-900 py-16 px-6 flex flex-col items-center justify-center">
-        <div className="bg-white p-10 rounded-3xl border border-stone-200/80 shadow-sm text-center max-w-md w-full">
-          <span className="text-3xl mb-3 block">🛒</span>
-          <h2 className="text-xl font-light font-serif mb-2 text-stone-900">Tu carrito está vacío</h2>
-          <p className="text-xs text-stone-500 mb-6 font-light">Explora el catálogo y selecciona las piezas que más te gusten.</p>
-          <Link 
-            to="/" 
-            className="inline-block bg-stone-950 text-white text-xs uppercase tracking-widest px-6 py-3 rounded-xl hover:bg-stone-900 transition-colors"
-          >
+      <div className="min-h-[70vh] bg-marfil px-4 py-16 flex items-center justify-center">
+        <div className="bg-white p-10 rounded border border-linea text-center max-w-md w-full flex flex-col items-center gap-3.5">
+          <h1 className="font-display font-medium text-[32px]">Tu carrito está vacío</h1>
+          <p className="text-sm text-gris">Explora el catálogo y elige las piezas que más te gusten.</p>
+          <Link to="/" className="mt-2 h-12 px-6 bg-tinta text-white rounded-full flex items-center text-[13px] uppercase tracking-[0.14em] font-bold hover:bg-black transition-colors">
             Ver catálogo
           </Link>
         </div>
@@ -46,88 +38,90 @@ function Carrito() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f7f6] text-gray-900 py-12 px-6">
-      <div className="max-w-3xl mx-auto">
-        
-        {/* Navegación y Título */}
-        <Link to="/" className="text-xs uppercase tracking-widest text-stone-500 hover:text-stone-900 mb-6 inline-flex items-center gap-1.5 transition-colors font-medium">
-          ← Seguir viendo el catálogo
+    <div className="min-h-screen bg-marfil text-tinta pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+
+        <Link to="/" className="mt-6 lg:mt-8 inline-flex items-center gap-2 text-sm font-semibold hover:text-oro transition-colors">
+          <IconoVolver />
+          Seguir viendo el catálogo
         </Link>
 
-        <div className="flex justify-between items-end mb-8 border-b border-stone-200/80 pb-4">
-          <div>
-            <h1 className="text-2xl font-light font-serif tracking-tight text-stone-900">Carrito de Compra</h1>
-            <p className="text-xs text-stone-500 mt-1 font-light">Revisa tus piezas antes de coordinar el pedido</p>
+        <div className="pt-6 lg:pt-8 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+          <div className="flex flex-col gap-2">
+            <h1 className="font-display font-medium text-[40px] lg:text-[56px] leading-none">Tu carrito</h1>
+            <p className="text-sm lg:text-[15px] text-gris">
+              {unidades} {unidades === 1 ? 'pieza' : 'piezas'} · Revisa tus piezas antes de coordinar el pedido
+            </p>
           </div>
-          <button 
+          <button
+            type="button"
             onClick={vaciarCarrito}
-            className="text-xs text-stone-400 hover:text-red-600 transition-colors font-light tracking-wide uppercase"
+            className="self-start sm:self-auto h-11 text-[13px] font-semibold text-gris underline hover:text-peligro transition-colors cursor-pointer"
           >
             Vaciar carrito
           </button>
         </div>
 
-        {/* Listado de Productos */}
-        <div className="bg-white rounded-3xl border border-stone-200/80 shadow-sm overflow-hidden mb-8 divide-y divide-stone-100">
-          {carrito.map((item) => (
-            <div key={item.id} className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              
-              <div className="flex flex-col">
-                <h3 className="font-normal text-stone-900 text-base mb-1">{item.nombre}</h3>
-                <p className="text-amber-700 font-semibold text-sm">
-                  ${(item.precio * item.cantidad).toLocaleString('es-CL')}
-                </p>
-              </div>
+        <div className="pt-6 lg:pt-9 grid lg:grid-cols-[minmax(0,1fr)_440px] xl:grid-cols-[minmax(0,1fr)_480px] gap-6 lg:gap-10 items-start">
 
-              <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end">
-                {/* Control de cantidad */}
-                <div className="flex items-center border border-stone-200 rounded-xl overflow-hidden bg-stone-50">
-                  <button 
-                    onClick={() => actualizarCantidad(item.id, item.cantidad - 1)}
-                    className="px-3 py-1.5 text-stone-600 hover:bg-stone-200/60 transition-colors cursor-pointer text-sm"
+          {/* Piezas */}
+          <ul className="bg-white border border-linea rounded divide-y divide-linea-suave">
+            {carrito.map((item) => (
+              <li key={item.id} className="p-4 sm:px-7 sm:py-6 flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-6">
+                <FotoPieza src={item.fotoPortada} alt="" iconSize={28} className="w-20 h-20 sm:w-[104px] sm:h-[104px] rounded shrink-0" />
+                <div className="flex-grow min-w-0 flex flex-col gap-1.5">
+                  <Link to={`/producto/${item.id}`} className="text-base sm:text-[17px] font-semibold hover:text-oro">{item.nombre}</Link>
+                  {(item.pesoGramos || item.largoCm) && <span className="text-[13px] text-gris">{fichaCorta(item)}</span>}
+                  <span className="text-[13px] text-gris">{formatoPrecio(item.precio)} c/u</span>
+                </div>
+                <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-4 sm:gap-6">
+                  <Cantidad
+                    valor={item.cantidad}
+                    onMenos={() => actualizarCantidad(item.id, item.cantidad - 1)}
+                    onMas={() => actualizarCantidad(item.id, item.cantidad + 1)}
+                  />
+                  <span className="sm:w-[110px] text-right text-[17px] font-bold">{formatoPrecio(item.precio * item.cantidad)}</span>
+                  <button
+                    type="button"
+                    onClick={() => eliminarDelCarrito(item.id)}
+                    aria-label={`Quitar ${item.nombre} del carrito`}
+                    className="w-11 h-11 rounded-full flex items-center justify-center text-gris hover:text-peligro hover:bg-marfil transition-colors cursor-pointer"
                   >
-                    -
-                  </button>
-                  <span className="px-4 py-1.5 text-xs font-medium text-stone-900">{item.cantidad}</span>
-                  <button 
-                    onClick={() => actualizarCantidad(item.id, item.cantidad + 1)}
-                    className="px-3 py-1.5 text-stone-600 hover:bg-stone-200/60 transition-colors cursor-pointer text-sm"
-                  >
-                    +
+                    <IconoPapelera />
                   </button>
                 </div>
+              </li>
+            ))}
+          </ul>
 
-                {/* Botón eliminar */}
-                <button 
-                  onClick={() => eliminarDelCarrito(item.id)}
-                  className="text-xs text-stone-400 hover:text-red-600 transition-colors font-light"
-                >
-                  Quitar
-                </button>
+          {/* Resumen */}
+          <div className="flex flex-col gap-5 lg:sticky lg:top-28">
+            <div className="bg-white border border-linea rounded p-6 lg:p-7 flex flex-col gap-4">
+              <span className="text-xs uppercase tracking-[0.2em] text-gris font-semibold">Resumen del pedido</span>
+              <div className="flex justify-between text-[15px]"><span className="text-gris">Piezas</span><span>{unidades}</span></div>
+              <div className="flex justify-between gap-4 text-[15px]"><span className="text-gris">Envío</span><span className="text-right">Se coordina por WhatsApp</span></div>
+              <div className="flex justify-between items-baseline pt-4 border-t border-linea">
+                <span className="text-[15px] font-semibold">Total a coordinar</span>
+                <span className="text-[28px] lg:text-[32px] font-bold">{formatoPrecio(total)}</span>
               </div>
-
+              <button
+                type="button"
+                onClick={enviarWhatsApp}
+                className="mt-1 h-[58px] bg-whatsapp hover:bg-whatsapp-oscuro text-white rounded-full flex items-center justify-center gap-3 text-[15px] font-bold transition-colors cursor-pointer"
+              >
+                <IconoChat size={20} />
+                Enviar pedido por WhatsApp
+              </button>
             </div>
-          ))}
-        </div>
 
-        {/* Resumen y Botón de WhatsApp */}
-        <div className="bg-white p-6 md:p-8 rounded-3xl border border-stone-200/80 shadow-sm space-y-6">
-          <div className="flex justify-between items-center border-b border-stone-100 pb-4">
-            <span className="text-xs uppercase tracking-widest text-stone-500 font-medium">Total a coordinar</span>
-            <span className="text-2xl font-semibold text-amber-700 tracking-tight">
-              ${calcularTotal().toLocaleString('es-CL')}
-            </span>
+            <div className="flex flex-col gap-2.5">
+              <span className="text-xs uppercase tracking-[0.2em] text-gris font-semibold">Así llegará tu mensaje</span>
+              <p className="bg-[#E7F1E4] rounded-[4px_14px_14px_14px] px-[18px] py-4 text-[13px] leading-relaxed whitespace-pre-line">
+                {armarMensaje().replace(/\*/g, '')}
+              </p>
+            </div>
           </div>
-
-          <button
-            onClick={enviarWhatsApp}
-            className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white py-4 px-6 rounded-2xl font-medium tracking-wide text-sm flex items-center justify-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl active:scale-[0.99] cursor-pointer"
-          >
-            <img src={logoWhatsapp} alt="WhatsApp" className="w-5 h-5 object-contain" />
-            <span>Enviar pedido por WhatsApp</span>
-          </button>
         </div>
-
       </div>
     </div>
   )

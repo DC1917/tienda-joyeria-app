@@ -3,9 +3,8 @@ import { useParams, Link } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from './firebase'
 import { useCart } from './CartContext'
-import logoWhatsapp from './assets/logowhatsapp.png'
-
-const TELEFONO_WHATSAPP = "56920807921"
+import { formatoPrecio, linkWhatsApp } from './config'
+import { Cantidad, Cargando, FotoPieza, IconoChat, IconoCheck } from './ui'
 
 function DetalleProducto() {
   const { id } = useParams()
@@ -13,7 +12,8 @@ function DetalleProducto() {
   const [producto, setProducto] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [fotoActiva, setFotoActiva] = useState(0)
-  const [productoAgregado, setProductoAgregado] = useState(false)
+  const [cantidad, setCantidad] = useState(1)
+  const [agregadas, setAgregadas] = useState(0)
 
   useEffect(() => {
     async function cargarProducto() {
@@ -27,145 +27,151 @@ function DetalleProducto() {
     cargarProducto()
   }, [id])
 
+  // Oculta el aviso de "agregado" después de unos segundos
+  useEffect(() => {
+    if (!agregadas) return
+    const t = setTimeout(() => setAgregadas(0), 4000)
+    return () => clearTimeout(t)
+  }, [agregadas])
+
   const manejarAgregarCarrito = () => {
-    agregarAlCarrito({ id: producto.id, nombre: producto.nombre, precio: producto.precio })
-    setProductoAgregado(true)
-    setTimeout(() => {
-      setProductoAgregado(false)
-    }, 2500)
+    agregarAlCarrito({
+      id: producto.id,
+      nombre: producto.nombre,
+      precio: producto.precio,
+      fotoPortada: producto.fotoPortada,
+      pesoGramos: producto.pesoGramos,
+      largoCm: producto.largoCm,
+      ley: producto.ley,
+    }, cantidad)
+    setAgregadas(cantidad)
+    setCantidad(1)
   }
 
-  const consultarPorWhatsApp = () => {
-    const mensaje = `Hola! Me interesa esta pieza de Silver 925 CL:\n\n*${producto.nombre}* - $${producto.precio?.toLocaleString('es-CL')}\n\n¿Me pueden dar más información?`
-    const url = `https://wa.me/${TELEFONO_WHATSAPP}?text=${encodeURIComponent(mensaje)}`
-    window.open(url, '_blank')
-  }
+  if (cargando) return <Cargando texto="Cargando pieza..." />
 
-  if (cargando) return (
-    <div className="min-h-screen bg-[#f7f7f6] flex items-center justify-center">
-      <p className="text-stone-400 tracking-[0.2em] text-xs uppercase animate-pulse">Cargando pieza...</p>
-    </div>
-  )
-  
   if (!producto) return (
-    <div className="min-h-screen bg-[#f7f7f6] flex flex-col items-center justify-center">
-      <p className="text-stone-500 mb-4 font-light">Producto no encontrado.</p>
-      <Link to="/" className="text-xs uppercase tracking-widest bg-stone-950 text-white px-5 py-2.5 rounded-xl">Volver al catálogo</Link>
+    <div className="min-h-[70vh] bg-marfil flex flex-col items-center justify-center gap-5 px-6 text-center">
+      <h1 className="font-display text-3xl font-medium">Producto no encontrado</h1>
+      <Link to="/" className="h-12 px-6 bg-tinta text-white rounded-full flex items-center text-xs uppercase tracking-[0.14em] font-bold">
+        Volver al catálogo
+      </Link>
     </div>
   )
 
-  // Aseguramos que la portada vaya primero, seguida de la galería
-  const galeria = [
-    producto.fotoPortada,
-    ...(producto.fotosGaleria || [])
-  ].filter(Boolean)
+  // La portada va primero, seguida de la galería
+  const galeria = [producto.fotoPortada, ...(producto.fotosGaleria || [])].filter(Boolean)
+  const numero = (v) => String(v).replace('.', ',')
+
+  const especificaciones = [
+    ['Peso aproximado', producto.pesoGramos ? `${numero(producto.pesoGramos)} g` : '—'],
+    ['Largo / medida', producto.largoCm ? `${numero(producto.largoCm)} cm` : '—'],
+    ['Ley del material', `Ley ${producto.ley || '925'}`],
+  ]
 
   return (
-    <div className="min-h-screen bg-[#f7f7f6] py-10 px-6 text-gray-900">
-      
-      {/* Notificación Pop-up flotante estilo Toast */}
-      {productoAgregado && (
-        <div className="fixed bottom-6 right-6 bg-stone-950 text-white px-6 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 z-50 border border-stone-800 animate-bounce">
-          <span className="text-amber-500 text-base">✓</span>
-          <p className="font-light text-xs tracking-wide">Artículo agregado correctamente al carrito</p>
-        </div>
-      )}
+    <div className="min-h-screen bg-marfil text-tinta pb-32 lg:pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
 
-      <div className="max-w-4xl mx-auto">
-        {/* Enlace de retorno */}
-        <Link to="/" className="text-xs uppercase tracking-widest text-stone-500 hover:text-stone-900 mb-6 inline-flex items-center gap-1.5 transition-colors font-medium">
-          ← Volver al catálogo
-        </Link>
+        {/* Migas de pan */}
+        <nav aria-label="Ruta" className="pt-5 lg:pt-8 flex flex-wrap gap-2.5 text-[13px] text-gris">
+          <Link to="/" className="hover:text-oro">Catálogo</Link>
+          {producto.categoria && (
+            <>
+              <span aria-hidden="true">/</span>
+              <Link to={`/?categoria=${producto.categoria}`} className="hover:text-oro">{producto.categoria}</Link>
+            </>
+          )}
+          <span aria-hidden="true">/</span>
+          <span className="text-tinta">{producto.nombre}</span>
+        </nav>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 bg-white p-8 md:p-10 rounded-3xl border border-stone-200/80 shadow-sm">
-          
-          {/* COLUMNA IZQUIERDA: FOTOS */}
-          <div className="flex flex-col gap-4">
-            {/* Foto principal grande */}
-            <div className="overflow-hidden rounded-2xl bg-stone-100 aspect-square border border-stone-100 shadow-inner relative group">
-              <img 
-                src={galeria[fotoActiva]} 
-                alt={producto.nombre} 
-                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" 
-              />
+        <div className="pt-5 lg:pt-7 grid lg:grid-cols-[96px_minmax(0,620px)_minmax(0,1fr)] gap-4 lg:gap-8 items-start">
+
+          {/* Miniaturas */}
+          {galeria.length > 1 && (
+            <div className="order-2 lg:order-1 flex lg:flex-col gap-2.5 lg:gap-3 overflow-x-auto">
+              {galeria.map((foto, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setFotoActiva(i)}
+                  aria-label={`Ver foto ${i + 1}`}
+                  aria-pressed={i === fotoActiva}
+                  className={`w-16 h-16 lg:w-24 lg:h-24 shrink-0 rounded overflow-hidden border-2 transition-all cursor-pointer ${
+                    i === fotoActiva ? 'border-tinta' : 'border-transparent opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <img src={foto} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Foto principal */}
+          <div className={`order-1 lg:order-2 group ${galeria.length > 1 ? '' : 'lg:col-start-2'}`}>
+            <FotoPieza src={galeria[fotoActiva]} alt={producto.nombre} zoom iconSize={72} className="aspect-square rounded -mx-4 sm:mx-0" />
+          </div>
+
+          {/* Información */}
+          <div className="order-3 flex flex-col gap-6 lg:pl-6 pt-2 lg:pt-0">
+            <div className="flex flex-col gap-3">
+              <span className="text-[11px] sm:text-xs uppercase tracking-[0.3em] text-oro font-semibold">Plata fina {producto.ley || '925'}</span>
+              <h1 className="font-display font-medium text-[38px] lg:text-[56px] leading-none">{producto.nombre}</h1>
+              <span className="text-2xl lg:text-[28px] font-bold">{formatoPrecio(producto.precio)}</span>
             </div>
 
-            {/* Galería de miniaturas (si tiene más de 1 foto) */}
-            {galeria.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-2">
-                {galeria.map((foto, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setFotoActiva(i)}
-                    className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 flex-shrink-0 cursor-pointer ${
-                      i === fotoActiva ? 'border-amber-600 scale-95 shadow-md' : 'border-stone-200 opacity-60 hover:opacity-100'
-                    }`}
-                  >
-                    <img src={foto} alt="" className="w-full h-full object-cover" />
-                  </button>
-                ))}
+            <dl className="bg-white border border-linea rounded px-5 lg:px-6 py-1 lg:py-2">
+              {especificaciones.map(([etiqueta, valor], i) => (
+                <div key={etiqueta} className={`flex justify-between py-3.5 lg:py-4 text-sm lg:text-[15px] ${i < especificaciones.length - 1 ? 'border-b border-linea-suave' : ''}`}>
+                  <dt className="text-gris">{etiqueta}</dt>
+                  <dd className="font-semibold">{valor}</dd>
+                </div>
+              ))}
+            </dl>
+
+            {/* Cantidad + agregar (barra fija abajo en móvil) */}
+            <div className="fixed lg:static inset-x-0 bottom-0 z-30 bg-white lg:bg-transparent border-t border-linea lg:border-0 px-4 pt-3 pb-6 lg:p-0 flex gap-3 items-center">
+              <Cantidad
+                grande
+                valor={cantidad}
+                onMenos={() => setCantidad(c => Math.max(1, c - 1))}
+                onMas={() => setCantidad(c => c + 1)}
+              />
+              <button
+                type="button"
+                onClick={manejarAgregarCarrito}
+                className="flex-grow h-14 rounded-full bg-tinta hover:bg-black text-white text-xs lg:text-[13px] uppercase tracking-[0.16em] font-bold transition-colors active:scale-[0.99] cursor-pointer"
+              >
+                Agregar al carrito
+              </button>
+            </div>
+
+            {agregadas > 0 && (
+              <div role="status" className="flex items-center justify-between gap-3 bg-exito-fondo border border-exito-borde text-exito-texto px-[18px] py-3.5 rounded text-sm">
+                <span className="flex items-center gap-2.5">
+                  <IconoCheck />
+                  Agregaste {agregadas} {agregadas === 1 ? 'unidad' : 'unidades'} al carrito
+                </span>
+                <Link to="/carrito" className="font-bold underline shrink-0">Ver carrito</Link>
               </div>
             )}
-          </div>
 
-          {/* COLUMNA DERECHA: INFORMACIÓN Y ACCIÓN */}
-          <div className="flex flex-col justify-between">
-            <div>
-              <span className="text-[10px] uppercase tracking-[0.3em] text-amber-600 font-medium block mb-2">
-                Plata Fina 925
-              </span>
-              <h1 className="text-2xl md:text-3xl font-light text-stone-900 tracking-tight font-serif mb-2">
-                {producto.nombre}
-              </h1>
-              <p className="text-2xl font-medium text-amber-700 tracking-tight mb-6">
-                ${producto.precio?.toLocaleString('es-CL')}
-              </p>
+            <a
+              href={linkWhatsApp(`Hola! Me interesa la pieza "${producto.nombre}" (${formatoPrecio(producto.precio)}). ¿Está disponible?`)}
+              target="_blank"
+              rel="noreferrer"
+              className="h-13 border border-linea bg-white rounded-full flex items-center justify-center gap-2.5 text-sm font-semibold hover:border-tinta transition-colors"
+            >
+              <IconoChat className="text-whatsapp" />
+              Consultar esta pieza por WhatsApp
+            </a>
 
-              {/* Ficha técnica elegante */}
-              <div className="bg-[#f7f7f6] p-5 rounded-2xl border border-stone-200/60 mb-8 space-y-2.5">
-                <p className="text-xs uppercase tracking-widest text-stone-400 font-medium mb-3">Especificaciones de la pieza</p>
-                <div className="flex justify-between text-sm text-stone-700 border-b border-stone-200/50 pb-2">
-                  <span className="font-light">Peso aproximado</span>
-                  <span className="font-medium text-stone-900">{producto.pesoGramos} g</span>
-                </div>
-                <div className="flex justify-between text-sm text-stone-700 border-b border-stone-200/50 pb-2">
-                  <span className="font-light">Largo / Medida</span>
-                  <span className="font-medium text-stone-900">{producto.largoCm} cm</span>
-                </div>
-                <div className="flex justify-between text-sm text-stone-700">
-                  <span className="font-light">Ley del material</span>
-                  <span className="font-medium text-stone-900">Ley {producto.ley}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Botones de acción */}
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={manejarAgregarCarrito}
-                className="w-full bg-stone-950 text-white py-4 rounded-xl font-light tracking-widest text-xs uppercase
-                         hover:bg-stone-900
-                         active:scale-[0.98]
-                         transition-all duration-200
-                         cursor-pointer shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-              >
-                <span>Agregar al carrito</span>
-                <span className="text-amber-500">✦</span>
-              </button>
-
-              <button
-                onClick={consultarPorWhatsApp}
-                className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white py-4 rounded-xl font-medium tracking-wide text-sm
-                         active:scale-[0.98]
-                         transition-all duration-200
-                         cursor-pointer shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
-              >
-                <img src={logoWhatsapp} alt="WhatsApp" className="w-5 h-5 object-contain" />
-                <span>Consultar por WhatsApp</span>
-              </button>
+            <div className="flex flex-col gap-2.5 text-[13px] text-gris pt-4 border-t border-linea">
+              <span>Tu pedido se coordina directamente con la tienda por WhatsApp: forma de pago y entrega.</span>
+              <span>Calidad garantizada · plata fina ley {producto.ley || '925'}.</span>
             </div>
           </div>
-
         </div>
       </div>
     </div>

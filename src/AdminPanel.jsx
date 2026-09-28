@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from './firebase'
 import AdminLogin from './AdminLogin'
 import AdminProductos from './AdminProductos'
+import Logo from './Logo'
+import { Cargando, IconoExterno, IconoJoya, IconoSalir } from './ui'
 
 function AdminPanel() {
   const [usuario, setUsuario] = useState(null)
@@ -16,44 +19,57 @@ function AdminPanel() {
     return () => unsubscribe()
   }, [])
 
-  if (cargando) {
-    return (
-      <div className="min-h-screen bg-[#f7f7f6] flex items-center justify-center">
-        <p className="text-xs tracking-widest uppercase text-stone-500 font-light">Cargando panel...</p>
-      </div>
-    )
-  }
+  if (cargando) return <Cargando texto="Cargando panel..." />
 
-  if (!usuario) {
-    return (
-      <div className="min-h-screen bg-[#f7f7f6]">
-        <AdminLogin onLogin={() => {}} />
-      </div>
-    )
-  }
+  if (!usuario) return <AdminLogin onLogin={() => {}} />
 
   return (
-    <div className="min-h-screen bg-[#f7f7f6] text-gray-900 py-12 px-6">
-      <div className="max-w-4xl mx-auto">
-        
-        {/* Cabecera del Panel */}
-        <div className="bg-white p-6 md:p-8 rounded-3xl border border-stone-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-light font-serif tracking-tight text-stone-900">Panel de Administración</h1>
-            <p className="text-xs text-stone-500 mt-1 font-light">Gestiona las piezas y el catálogo de la tienda</p>
-          </div>
-          <button 
-            onClick={() => signOut(auth)} 
-            className="text-xs uppercase tracking-widest text-stone-400 hover:text-red-600 transition-colors font-medium cursor-pointer"
+    <div className="min-h-screen bg-marfil text-tinta lg:flex">
+
+      {/* Barra lateral (escritorio) */}
+      <aside className="hidden lg:flex w-[248px] shrink-0 bg-tinta text-marfil px-5 py-8 flex-col gap-10 sticky top-0 h-screen">
+        <div className="flex items-center gap-3 px-2">
+          <Logo className="w-9 h-9 text-marfil" />
+          <span className="flex flex-col">
+            <span className="font-display text-xl font-semibold tracking-[0.1em] leading-none">SILVER 925</span>
+            <span className="text-[10px] tracking-[0.2em] text-[#9D968A] mt-1">ADMINISTRACIÓN</span>
+          </span>
+        </div>
+        <nav aria-label="Panel" className="flex flex-col gap-1">
+          <span aria-current="page" className="h-11 px-3.5 rounded bg-[#2C2B28] text-white flex items-center gap-3 text-sm font-semibold">
+            <IconoJoya size={18} />
+            Productos
+          </span>
+          <Link to="/" className="h-11 px-3.5 rounded text-[#C9C3B7] hover:text-white flex items-center gap-3 text-sm font-medium">
+            <IconoExterno />
+            Ver tienda
+          </Link>
+        </nav>
+        <div className="mt-auto flex flex-col gap-3 px-2 pt-4 border-t border-[#3A3935]">
+          <span className="text-[13px] text-[#C9C3B7] truncate">{usuario.email}</span>
+          <button
+            type="button"
+            onClick={() => signOut(auth)}
+            className="h-10 flex items-center gap-2.5 text-[13px] font-semibold hover:text-white cursor-pointer"
           >
+            <IconoSalir size={16} />
             Cerrar sesión
           </button>
         </div>
+      </aside>
 
-        {/* Componente de Productos */}
-        <AdminProductos />
-
+      {/* Barra superior (móvil) */}
+      <div className="lg:hidden bg-tinta text-marfil px-4 h-16 flex items-center justify-between">
+        <span className="font-display text-xl font-semibold tracking-[0.1em]">SILVER 925 · Admin</span>
+        <div className="flex items-center gap-1">
+          <Link to="/" aria-label="Ver tienda" className="w-11 h-11 flex items-center justify-center"><IconoExterno /></Link>
+          <button type="button" onClick={() => signOut(auth)} aria-label="Cerrar sesión" className="w-11 h-11 flex items-center justify-center cursor-pointer"><IconoSalir /></button>
+        </div>
       </div>
+
+      <main className="flex-grow min-w-0 px-4 sm:px-6 lg:px-12 py-8 lg:py-10">
+        <AdminProductos />
+      </main>
     </div>
   )
 }
