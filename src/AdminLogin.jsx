@@ -36,11 +36,11 @@ function AdminLogin({ onLogin }) {
         </div>
         <div className="flex flex-col gap-5">
           <h1 className="font-display font-medium text-7xl leading-none">Panel de administración</h1>
-          <p className="text-base leading-relaxed text-[#C9C3B7] max-w-[440px]">
+          <p className="text-base leading-relaxed text-[#B4B8BD] max-w-[440px]">
             Agrega, edita y publica las piezas de la vitrina. Los cambios se ven al instante en la tienda.
           </p>
         </div>
-        <span className="text-xs uppercase tracking-[0.14em] text-[#9D968A]">Acceso solo para el equipo de la tienda</span>
+        <span className="text-xs uppercase tracking-[0.14em] text-[#8A8E93]">Acceso solo para el equipo de la tienda</span>
       </div>
 
       {/* Formulario */}

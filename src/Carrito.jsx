@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useCart } from './CartContext'
 import { fichaCorta, formatoPrecio, linkWhatsApp } from './config'
-import { Cantidad, FotoPieza, IconoChat, IconoPapelera, IconoVolver } from './ui'
+import { Cantidad, FotoPieza, IconoChat, IconoJoya, IconoPapelera, IconoVolver } from './ui'
 
 function Carrito() {
   const { carrito, actualizarCantidad, eliminarDelCarrito, vaciarCarrito } = useCart()
@@ -26,7 +26,8 @@ function Carrito() {
   if (carrito.length === 0) {
     return (
       <div className="min-h-[70vh] bg-marfil px-4 py-16 flex items-center justify-center">
-        <div className="bg-white p-10 rounded border border-linea text-center max-w-md w-full flex flex-col items-center gap-3.5">
+        <div className="entrada bg-white p-10 rounded border border-linea text-center max-w-md w-full flex flex-col items-center gap-3.5">
+          <IconoJoya size={52} className="flotar text-plata mb-1" />
           <h1 className="font-display font-medium text-[32px]">Tu carrito está vacío</h1>
           <p className="text-sm text-gris">Explora el catálogo y elige las piezas que más te gusten.</p>
           <Link to="/" className="mt-2 h-12 px-6 bg-tinta text-white rounded-full flex items-center text-[13px] uppercase tracking-[0.14em] font-bold hover:bg-black transition-colors">
@@ -41,12 +42,12 @@ function Carrito() {
     <div className="min-h-screen bg-marfil text-tinta pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
 
-        <Link to="/" className="mt-6 lg:mt-8 inline-flex items-center gap-2 text-sm font-semibold hover:text-oro transition-colors">
-          <IconoVolver />
+        <Link to="/" className="mt-6 lg:mt-8 inline-flex items-center gap-2 text-sm font-semibold hover:text-plata transition-colors group entrada">
+          <IconoVolver className="transition-transform group-hover:-translate-x-1" />
           Seguir viendo el catálogo
         </Link>
 
-        <div className="pt-6 lg:pt-8 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div style={{ '--d': '100ms' }} className="entrada pt-6 lg:pt-8 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div className="flex flex-col gap-2">
             <h1 className="font-display font-medium text-[40px] lg:text-[56px] leading-none">Tu carrito</h1>
             <p className="text-sm lg:text-[15px] text-gris">
@@ -66,11 +67,11 @@ function Carrito() {
 
           {/* Piezas */}
           <ul className="bg-white border border-linea rounded divide-y divide-linea-suave">
-            {carrito.map((item) => (
-              <li key={item.id} className="p-4 sm:px-7 sm:py-6 flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-6">
-                <FotoPieza src={item.fotoPortada} alt="" iconSize={28} className="w-20 h-20 sm:w-[104px] sm:h-[104px] rounded shrink-0" />
+            {carrito.map((item, i) => (
+              <li key={item.id} style={{ '--d': `${200 + i * 80}ms` }} className="entrada group hover:bg-marfil/40 transition-colors p-4 sm:px-7 sm:py-6 flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-6">
+                <FotoPieza src={item.fotoPortada} alt="" iconSize={28} zoom className="w-20 h-20 sm:w-[104px] sm:h-[104px] rounded shrink-0" />
                 <div className="flex-grow min-w-0 flex flex-col gap-1.5">
-                  <Link to={`/producto/${item.id}`} className="text-base sm:text-[17px] font-semibold hover:text-oro">{item.nombre}</Link>
+                  <Link to={`/producto/${item.id}`} className="text-base sm:text-[17px] font-semibold hover:text-plata">{item.nombre}</Link>
                   {(item.pesoGramos || item.largoCm) && <span className="text-[13px] text-gris">{fichaCorta(item)}</span>}
                   <span className="text-[13px] text-gris">{formatoPrecio(item.precio)} c/u</span>
                 </div>
@@ -80,7 +81,7 @@ function Carrito() {
                     onMenos={() => actualizarCantidad(item.id, item.cantidad - 1)}
                     onMas={() => actualizarCantidad(item.id, item.cantidad + 1)}
                   />
-                  <span className="sm:w-[110px] text-right text-[17px] font-bold">{formatoPrecio(item.precio * item.cantidad)}</span>
+                  <span key={item.cantidad} className="latido sm:w-[110px] text-right text-[17px] font-bold">{formatoPrecio(item.precio * item.cantidad)}</span>
                   <button
                     type="button"
                     onClick={() => eliminarDelCarrito(item.id)}
@@ -95,19 +96,19 @@ function Carrito() {
           </ul>
 
           {/* Resumen */}
-          <div className="flex flex-col gap-5 lg:sticky lg:top-28">
+          <div style={{ '--d': '300ms' }} className="entrada flex flex-col gap-5 lg:sticky lg:top-28">
             <div className="bg-white border border-linea rounded p-6 lg:p-7 flex flex-col gap-4">
               <span className="text-xs uppercase tracking-[0.2em] text-gris font-semibold">Resumen del pedido</span>
               <div className="flex justify-between text-[15px]"><span className="text-gris">Piezas</span><span>{unidades}</span></div>
               <div className="flex justify-between gap-4 text-[15px]"><span className="text-gris">Envío</span><span className="text-right">Se coordina por WhatsApp</span></div>
               <div className="flex justify-between items-baseline pt-4 border-t border-linea">
                 <span className="text-[15px] font-semibold">Total a coordinar</span>
-                <span className="text-[28px] lg:text-[32px] font-bold">{formatoPrecio(total)}</span>
+                <span key={total} className="latido inline-block text-[28px] lg:text-[32px] font-bold">{formatoPrecio(total)}</span>
               </div>
               <button
                 type="button"
                 onClick={enviarWhatsApp}
-                className="mt-1 h-[58px] bg-whatsapp hover:bg-whatsapp-oscuro text-white rounded-full flex items-center justify-center gap-3 text-[15px] font-bold transition-colors cursor-pointer"
+                className="mt-1 h-[58px] bg-whatsapp hover:bg-whatsapp-oscuro hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-12px_rgba(30,122,70,0.7)] active:scale-[0.98] text-white rounded-full flex items-center justify-center gap-3 text-[15px] font-bold transition-all cursor-pointer"
               >
                 <IconoChat size={20} />
                 Enviar pedido por WhatsApp
@@ -116,7 +117,7 @@ function Carrito() {
 
             <div className="flex flex-col gap-2.5">
               <span className="text-xs uppercase tracking-[0.2em] text-gris font-semibold">Así llegará tu mensaje</span>
-              <p className="bg-[#E7F1E4] rounded-[4px_14px_14px_14px] px-[18px] py-4 text-[13px] leading-relaxed whitespace-pre-line">
+              <p style={{ '--d': '500ms' }} className="entrada bg-[#E7F1E4] shadow-[0_6px_20px_-14px_rgba(28,29,31,0.4)] rounded-[4px_14px_14px_14px] px-[18px] py-4 text-[13px] leading-relaxed whitespace-pre-line">
                 {armarMensaje().replace(/\*/g, '')}
               </p>
             </div>

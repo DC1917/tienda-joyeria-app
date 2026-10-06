@@ -274,7 +274,7 @@ function AdminProductos() {
             <span className="text-[11px] uppercase tracking-[0.14em] font-semibold text-gris">
               {editandoId ? 'Cambiar foto de portada (opcional)' : 'Foto de portada *'}
             </span>
-            <label className="min-h-[120px] border border-dashed border-[#B9B2A4] rounded bg-[#FAF9F6] hover:border-tinta flex items-center gap-4 p-4 text-gris text-[13px] cursor-pointer transition-colors">
+            <label className="min-h-[120px] border border-dashed border-[#A9AEB4] rounded bg-[#FAFAF9] hover:border-tinta flex items-center gap-4 p-4 text-gris text-[13px] cursor-pointer transition-colors">
               {(previaPortada || fotoPortadaActual) ? (
                 <img src={previaPortada || fotoPortadaActual} alt="" className="w-20 h-20 object-cover rounded shrink-0" />
               ) : (
@@ -307,7 +307,7 @@ function AdminProductos() {
                   </button>
                 </div>
               ))}
-              <label className="aspect-square border border-dashed border-[#B9B2A4] rounded flex flex-col items-center justify-center gap-1 text-gris hover:border-tinta cursor-pointer transition-colors">
+              <label className="aspect-square border border-dashed border-[#A9AEB4] rounded flex flex-col items-center justify-center gap-1 text-gris hover:border-tinta cursor-pointer transition-colors">
                 <IconoMas size={20} />
                 <span className="text-[10px] font-semibold">
                   {archivosGaleria.length ? `${archivosGaleria.length} nueva(s)` : 'Agregar'}
@@ -355,7 +355,7 @@ function AdminProductos() {
                   <li
                     key={p.id}
                     className={`px-4 sm:px-5 py-3 grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1fr)_110px_80px_100px] gap-x-4 gap-y-2 items-center ${
-                      editandoId === p.id ? 'bg-[#FAF6EC]' : ''
+                      editandoId === p.id ? 'bg-[#F1F3F5]' : ''
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0 col-span-2 md:col-span-1">
@@ -374,7 +374,7 @@ function AdminProductos() {
                       aria-checked={visible}
                       aria-label={`Mostrar ${p.nombre} en la tienda`}
                       onClick={() => alternarDisponible(p)}
-                      className={`hidden md:flex w-12 h-7 rounded-full p-[3px] transition-colors cursor-pointer ${visible ? 'bg-whatsapp justify-end' : 'bg-[#CFC9BD] justify-start'}`}
+                      className={`hidden md:flex w-12 h-7 rounded-full p-[3px] transition-colors cursor-pointer ${visible ? 'bg-whatsapp justify-end' : 'bg-[#C9CDD2] justify-start'}`}
                     >
                       <span className="w-[22px] h-[22px] rounded-full bg-white block" />
                     </button>

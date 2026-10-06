@@ -32,21 +32,21 @@ function AdminPanel() {
           <Logo className="w-9 h-9 text-marfil" />
           <span className="flex flex-col">
             <span className="font-display text-xl font-semibold tracking-[0.1em] leading-none">SILVER 925</span>
-            <span className="text-[10px] tracking-[0.2em] text-[#9D968A] mt-1">ADMINISTRACIÓN</span>
+            <span className="text-[10px] tracking-[0.2em] text-[#8A8E93] mt-1">ADMINISTRACIÓN</span>
           </span>
         </div>
         <nav aria-label="Panel" className="flex flex-col gap-1">
-          <span aria-current="page" className="h-11 px-3.5 rounded bg-[#2C2B28] text-white flex items-center gap-3 text-sm font-semibold">
+          <span aria-current="page" className="h-11 px-3.5 rounded bg-[#2A2D33] text-white flex items-center gap-3 text-sm font-semibold">
             <IconoJoya size={18} />
             Productos
           </span>
-          <Link to="/" className="h-11 px-3.5 rounded text-[#C9C3B7] hover:text-white flex items-center gap-3 text-sm font-medium">
+          <Link to="/" className="h-11 px-3.5 rounded text-[#B4B8BD] hover:text-white flex items-center gap-3 text-sm font-medium">
             <IconoExterno />
             Ver tienda
           </Link>
         </nav>
-        <div className="mt-auto flex flex-col gap-3 px-2 pt-4 border-t border-[#3A3935]">
-          <span className="text-[13px] text-[#C9C3B7] truncate">{usuario.email}</span>
+        <div className="mt-auto flex flex-col gap-3 px-2 pt-4 border-t border-[#3A3E45]">
+          <span className="text-[13px] text-[#B4B8BD] truncate">{usuario.email}</span>
           <button
             type="button"
             onClick={() => signOut(auth)}

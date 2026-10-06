@@ -3,21 +3,29 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from './firebase'
 import { CATEGORIAS, fichaCorta, formatoPrecio, linkWhatsApp } from './config'
-import { Cargando, FotoPieza, IconoChat, IconoEscudo, IconoFicha } from './ui'
+import Logo from './Logo'
+import { Cargando, FotoPieza, IconoChat, IconoEscudo, IconoFicha, Revelar } from './ui'
 
-function TarjetaProducto({ p }) {
+function TarjetaProducto({ p, i }) {
   return (
+    <Revelar retraso={(i % 4) * 90}>
     <Link to={`/producto/${p.id}`} className="group flex flex-col gap-4">
-      <FotoPieza src={p.fotoPortada} alt={p.nombre} zoom className="aspect-square rounded" />
+      <div className="relative transition-transform duration-500 ease-out group-hover:-translate-y-1.5">
+        <FotoPieza src={p.fotoPortada} alt={p.nombre} zoom className="aspect-square rounded group-hover:shadow-[0_18px_40px_-18px_rgba(28,29,31,0.45)] transition-shadow duration-500" />
+        <span className="absolute inset-x-3 bottom-3 h-10 rounded-full bg-white/90 backdrop-blur text-[11px] uppercase tracking-[0.18em] font-semibold flex items-center justify-center opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400">
+          Ver pieza
+        </span>
+      </div>
       <div className="flex flex-col gap-1.5">
         {p.categoria && (
           <span className="text-[11px] uppercase tracking-[0.18em] text-gris">{p.categoria}</span>
         )}
-        <span className="text-[15px] sm:text-[17px] font-medium group-hover:text-oro transition-colors">{p.nombre}</span>
+        <span className="text-[15px] sm:text-[17px] font-medium group-hover:text-plata transition-colors">{p.nombre}</span>
         <span className="text-xs sm:text-[13px] text-gris">{fichaCorta(p)}</span>
         <span className="text-base sm:text-lg font-bold mt-1">{formatoPrecio(p.precio)}</span>
       </div>
     </Link>
+    </Revelar>
   )
 }
 
@@ -63,20 +71,21 @@ function App() {
       {/* HERO */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-4 pb-8 lg:py-14 grid lg:grid-cols-2 gap-6 lg:gap-16 items-center">
         <div className="order-2 lg:order-1 flex flex-col gap-5 lg:gap-7">
-          <span className="text-[11px] sm:text-xs uppercase tracking-[0.3em] text-oro font-semibold">
+          <span className="entrada flex items-center gap-3 text-[11px] sm:text-xs uppercase tracking-[0.3em] text-plata font-semibold">
+            <span className="h-px w-10 bg-plata" aria-hidden="true" />
             Colección plata fina 925
           </span>
-          <h1 className="font-display font-medium text-[42px] sm:text-6xl lg:text-[80px] leading-[0.98] tracking-tight">
-            Elegancia y diseño único, para todos los días.
+          <h1 className="font-display font-medium text-[42px] sm:text-6xl lg:text-[80px] leading-[0.98] tracking-tight entrada" style={{ '--d': '120ms' }}>
+            Elegancia y diseño <em className="texto-plata italic">único</em>, para todos los días.
           </h1>
-          <p className="text-base lg:text-[17px] leading-relaxed text-gris max-w-[480px]">
+          <p className="entrada text-base lg:text-[17px] leading-relaxed text-gris max-w-[480px]" style={{ '--d': '240ms' }}>
             Cada pieza con su ficha técnica: peso, largo y ley del material. Arma tu pedido y lo coordinamos contigo por WhatsApp.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 mt-1">
+          <div className="entrada flex flex-col sm:flex-row gap-3 mt-1" style={{ '--d': '360ms' }}>
             <button
               type="button"
               onClick={() => catalogoRef.current?.scrollIntoView({ behavior: 'smooth' })}
-              className="h-13 px-7 bg-tinta text-white rounded-full text-[13px] uppercase tracking-[0.14em] font-semibold hover:bg-black transition-colors cursor-pointer"
+              className="h-13 px-7 bg-tinta text-white rounded-full text-[13px] uppercase tracking-[0.14em] font-semibold hover:bg-black hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-10px_rgba(28,29,31,0.6)] transition-all cursor-pointer"
             >
               Ver catálogo
             </button>
@@ -92,11 +101,12 @@ function App() {
           </div>
         </div>
 
-        <div className="order-1 lg:order-2 relative">
+        <div className="order-1 lg:order-2 relative entrada" style={{ '--d': '200ms' }}>
+          <div aria-hidden="true" className="hidden lg:block absolute -top-5 -right-5 w-full h-full border border-plata/40 rounded" />
           {destacado ? (
             <Link to={`/producto/${destacado.id}`} className="group block">
               <FotoPieza src={destacado.fotoPortada} alt={destacado.nombre} zoom iconSize={64} className="h-72 sm:h-[420px] lg:h-[508px] rounded" />
-              <div className="absolute left-4 bottom-4 sm:left-6 sm:bottom-6 bg-white px-[18px] py-3.5 rounded flex flex-col gap-1">
+              <div className="flotar absolute left-4 bottom-4 sm:left-6 sm:bottom-6 bg-white/85 backdrop-blur-md px-[18px] py-3.5 rounded flex flex-col gap-1 shadow-[0_10px_30px_-12px_rgba(28,29,31,0.35)]">
                 <span className="text-sm font-semibold">{destacado.nombre}</span>
                 <span className="text-xs text-gris">{fichaCorta(destacado)}</span>
               </div>
@@ -114,14 +124,14 @@ function App() {
             { Icono: IconoEscudo, titulo: 'Calidad garantizada', texto: 'Plata fina con ley 925' },
             { Icono: IconoFicha, titulo: 'Ficha técnica en cada pieza', texto: 'Peso, largo y ley del material' },
             { Icono: IconoChat, titulo: 'Compra directa por WhatsApp', texto: 'Coordinas tu pedido con la tienda' },
-          ].map(({ Icono, titulo, texto }) => (
-            <div key={titulo} className="flex items-center gap-3.5">
-              <Icono size={24} className="text-oro shrink-0" />
+          ].map(({ Icono, titulo, texto }, i) => (
+            <Revelar key={titulo} retraso={i * 120} className="flex items-center gap-3.5">
+              <Icono size={24} className="text-plata shrink-0" />
               <span className="flex flex-col gap-0.5">
                 <strong className="text-sm font-semibold">{titulo}</strong>
                 <span className="text-[13px] text-gris">{texto}</span>
               </span>
-            </div>
+            </Revelar>
           ))}
         </div>
       </div>
@@ -163,40 +173,80 @@ function App() {
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3 gap-y-6 sm:gap-x-8 sm:gap-y-10">
-            {filtrados.map(p => <TarjetaProducto key={p.id} p={p} />)}
+            {filtrados.map((p, i) => <TarjetaProducto key={p.id} p={p} i={i} />)}
           </div>
         )}
       </section>
 
       {/* BANNER WHATSAPP */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 mt-6 lg:mt-10">
-        <div className="bg-tinta text-marfil rounded px-6 py-10 lg:px-16 lg:py-14 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="flex flex-col gap-2.5">
+        <Revelar className="relative overflow-hidden bg-tinta text-marfil rounded px-6 py-10 lg:px-16 lg:py-14 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div aria-hidden="true" className="absolute -right-24 -top-24 w-72 h-72 rounded-full bg-plata/25 blur-3xl" />
+          <div className="relative flex flex-col gap-2.5">
             <h3 className="font-display font-medium text-3xl lg:text-[40px] leading-tight">¿Buscas una pieza en particular?</h3>
-            <p className="text-[15px] text-[#C9C3B7]">Escríbenos y te ayudamos a elegir medida, largo o modelo.</p>
+            <p className="text-[15px] text-[#B4B8BD]">Escríbenos y te ayudamos a elegir medida, largo o modelo.</p>
           </div>
           <a
             href={linkWhatsApp('Hola! Estoy buscando una pieza en particular.')}
             target="_blank"
             rel="noreferrer"
-            className="h-13 px-6 bg-whatsapp hover:bg-whatsapp-oscuro text-white rounded-full flex items-center justify-center gap-2.5 text-sm font-semibold transition-colors shrink-0"
+            className="relative h-13 px-6 bg-whatsapp hover:bg-whatsapp-oscuro hover:-translate-y-0.5 text-white rounded-full flex items-center justify-center gap-2.5 text-sm font-semibold transition-colors shrink-0"
           >
             <IconoChat />
             Hablar por WhatsApp
           </a>
-        </div>
+        </Revelar>
       </section>
 
       {/* FOOTER */}
-      <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 mt-16 lg:mt-[72px] py-10 lg:py-12 border-t border-linea flex flex-col sm:flex-row justify-between gap-6 text-[13px] text-gris">
-        <div className="flex flex-col gap-2">
-          <span className="font-display text-[22px] font-semibold tracking-[0.1em] text-tinta">SILVER 925 CL</span>
-          <span>© {new Date().getFullYear()} Silver 925 CL — Calidad garantizada</span>
-        </div>
-        <div className="flex gap-6 sm:gap-8">
-          <button type="button" onClick={() => catalogoRef.current?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-oro cursor-pointer">Catálogo</button>
-          <Link to="/carrito" className="hover:text-oro">Carrito</Link>
-          <a href={linkWhatsApp()} target="_blank" rel="noreferrer" className="hover:text-oro">WhatsApp</a>
+      <footer className="relative overflow-hidden bg-tinta text-[#B4B8BD] mt-16 lg:mt-[72px]">
+        <div aria-hidden="true" className="absolute -left-32 -bottom-32 w-96 h-96 rounded-full bg-plata/20 blur-3xl" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-14 lg:pt-20 pb-8">
+          <Revelar className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr]">
+            <div className="flex flex-col gap-4">
+              <Link to="/" className="flex items-center gap-3 text-marfil w-fit group">
+                <Logo className="h-10 w-10 text-plata transition-transform duration-500 group-hover:rotate-12" />
+                <span className="font-display text-[26px] font-semibold tracking-[0.1em] leading-none">SILVER 925 CL</span>
+              </Link>
+              <p className="text-sm leading-relaxed max-w-xs">
+                Joyería en plata fina ley 925. Piezas con ficha técnica y pedidos coordinados directamente contigo.
+              </p>
+            </div>
+
+            <nav aria-label="Pie de página" className="flex flex-col gap-3 text-sm">
+              <span className="text-[11px] uppercase tracking-[0.24em] text-campo font-semibold mb-1">Tienda</span>
+              {[['Catálogo', null], ...CATEGORIAS.map(c => [c, c])].map(([texto, cat]) => (
+                <Link
+                  key={texto}
+                  to={cat ? `/?categoria=${cat}` : '/'}
+                  state={{ irAlCatalogo: true }}
+                  className="w-fit hover:text-marfil hover:translate-x-1 transition-all"
+                >
+                  {texto}
+                </Link>
+              ))}
+              <Link to="/carrito" className="w-fit hover:text-marfil hover:translate-x-1 transition-all">Carrito</Link>
+            </nav>
+
+            <div className="flex flex-col gap-3 text-sm">
+              <span className="text-[11px] uppercase tracking-[0.24em] text-campo font-semibold mb-1">Contacto</span>
+              <p className="leading-relaxed">¿Dudas sobre una medida o modelo? Escríbenos y te ayudamos.</p>
+              <a
+                href={linkWhatsApp()}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-1 w-fit h-11 px-5 rounded-full border border-marfil/30 text-marfil flex items-center gap-2.5 font-semibold hover:bg-whatsapp hover:border-whatsapp hover:-translate-y-0.5 transition-all"
+              >
+                <IconoChat />
+                WhatsApp
+              </a>
+            </div>
+          </Revelar>
+
+          <div className="mt-12 lg:mt-16 pt-6 border-t border-marfil/10 flex flex-col sm:flex-row justify-between gap-2 text-xs text-gris-claro">
+            <span>© {new Date().getFullYear()} Silver 925 CL — Calidad garantizada</span>
+            <span className="flex items-center gap-2"><span className="text-plata">✦</span> Plata fina ley 925</span>
+          </div>
         </div>
       </footer>
 
@@ -206,7 +256,7 @@ function App() {
         target="_blank"
         rel="noreferrer"
         aria-label="Escribir por WhatsApp"
-        className="lg:hidden fixed right-4 bottom-6 z-30 w-14 h-14 rounded-full bg-whatsapp text-white flex items-center justify-center shadow-[0_6px_18px_rgba(26,26,24,0.25)]"
+        className="lg:hidden fixed right-4 bottom-6 z-30 w-14 h-14 rounded-full bg-whatsapp text-white flex items-center justify-center shadow-[0_6px_18px_rgba(28,29,31,0.25)]"
       >
         <IconoChat size={24} />
       </a>

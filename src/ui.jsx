@@ -1,4 +1,23 @@
 // Íconos de línea y piezas visuales compartidas
+import { useEffect, useRef, useState } from 'react'
+
+// Aparece suavemente cuando entra en pantalla
+export function Revelar({ as: Tag = 'div', retraso = 0, className = '', children, ...resto }) {
+  const ref = useRef(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setVisible(true); obs.disconnect() }
+    }, { rootMargin: '0px 0px -10% 0px' })
+    obs.observe(ref.current)
+    return () => obs.disconnect()
+  }, [])
+  return (
+    <Tag ref={ref} style={{ '--d': `${retraso}ms` }} className={`revelar ${visible ? 'visible' : ''} ${className}`} {...resto}>
+      {children}
+    </Tag>
+  )
+}
 
 function Icono({ children, size = 18, grosor = 1.6, className = '' }) {
   return (
@@ -53,7 +72,7 @@ export function FotoPieza({ src, alt = '', className = '', zoom = false, iconSiz
     )
   }
   return (
-    <div className={`bg-foto overflow-hidden ${className}`}>
+    <div className={`bg-foto overflow-hidden ${zoom ? 'destello' : ''} ${className}`}>
       <img
         src={src}
         alt={alt}

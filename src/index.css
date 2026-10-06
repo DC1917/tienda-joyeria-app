@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
-/* Paleta y tipografías de Silver 925 CL */
+/* Paleta "plata fría" y tipografías de Silver 925 CL */
 @theme {
-  --color-tinta: #1A1A18;
-  --color-marfil: #F5F3EE;
-  --color-linea: #E2DDD3;
-  --color-linea-suave: #EDE9E1;
-  --color-campo: #D6D0C4;
-  --color-gris: #625D55;
-  --color-gris-claro: #8C857A;
-  --color-oro: #8A6A2F;
+  --color-tinta: #1C1D1F;
+  --color-marfil: #F4F4F1;
+  --color-linea: #D9DBDE;
+  --color-linea-suave: #E6E7E9;
+  --color-campo: #C9CDD2;
+  --color-gris: #5E6166;
+  --color-gris-claro: #8A8E93;
+  --color-plata: #5F6B78;
   --color-whatsapp: #1E7A46;
   --color-whatsapp-oscuro: #17613A;
   --color-exito-fondo: #EEF3EC;
   --color-exito-borde: #C6D8C3;
   --color-exito-texto: #1F4D2B;
   --color-peligro: #9A3B2E;
-  --color-foto: #E3DED4;
+  --color-foto: #E4E5E7;
 
   --font-display: "Cormorant Garamond", Georgia, serif;
   --font-sans: "Manrope", system-ui, sans-serif;
@@ -31,6 +31,61 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-oro);
+  outline: 2px solid var(--color-plata);
   outline-offset: 2px;
+}
+
+html { scroll-behavior: smooth; }
+::selection { background: var(--color-plata); color: #fff; }
+
+/* ---------- Efectos ---------- */
+
+/* Entrada escalonada (usar style="--d: 120ms") */
+@keyframes subir {
+  from { opacity: 0; transform: translateY(24px); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+.entrada { animation: subir 0.9s cubic-bezier(.2,.7,.2,1) both; animation-delay: var(--d, 0ms); }
+
+/* Aparición al hacer scroll (ver <Revelar>) */
+.revelar { opacity: 0; transform: translateY(28px); transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0ms); }
+.revelar.visible { opacity: 1; transform: none; }
+
+/* Brillo plateado que recorre el texto */
+@keyframes brillo { to { background-position: -200% center; } }
+.texto-plata {
+  background: linear-gradient(100deg, var(--color-tinta) 40%, #C9CDD2 50%, var(--color-tinta) 60%) 0 center / 200% auto;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: brillo 5s linear infinite;
+}
+
+/* Destello diagonal al pasar sobre una foto */
+.destello { position: relative; }
+.destello::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.45) 50%, transparent 65%);
+  transform: translateX(-120%); transition: transform 1s ease;
+}
+.group:hover .destello::after { transform: translateX(120%); }
+
+/* Cinta superior en movimiento */
+@keyframes cinta { to { transform: translateX(-50%); } }
+.cinta { animation: cinta 30s linear infinite; }
+
+/* Rebote del contador del carrito */
+@keyframes latido { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+.latido { animation: latido .45s ease; }
+
+/* Flotación suave */
+@keyframes flotar { 50% { transform: translateY(-8px); } }
+.flotar { animation: flotar 6s ease-in-out infinite; }
+
+/* Fundido al cambiar de foto */
+@keyframes fundido { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: none; } }
+.fundido { animation: fundido .6s cubic-bezier(.2,.7,.2,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .revelar { opacity: 1; transform: none; }
+  html { scroll-behavior: auto; }
 }
