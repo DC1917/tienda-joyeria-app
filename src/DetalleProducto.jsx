@@ -142,7 +142,7 @@ function DetalleProducto() {
               <button
                 type="button"
                 onClick={manejarAgregarCarrito}
-                className="flex-grow h-14 rounded-full bg-tinta hover:bg-black text-white text-xs lg:text-[13px] uppercase tracking-[0.16em] font-bold hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-12px_rgba(28,29,31,0.6)] transition-all active:scale-[0.97] cursor-pointer"
+                className="flex-grow h-14 rounded-full bg-tinta hover:bg-plata text-white text-xs lg:text-[13px] uppercase tracking-[0.16em] font-bold hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-12px_rgba(28,29,31,0.6)] transition-all active:scale-[0.97] cursor-pointer"
               >
                 Agregar al carrito
               </button>

@@ -17,8 +17,15 @@ function Header() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // La tienda usa el tema nocturno; el admin queda claro
+  const enAdmin = location.pathname.startsWith('/admin')
+  useEffect(() => {
+    document.documentElement.classList.toggle('noche', !enAdmin)
+    document.documentElement.classList.toggle('grano', !enAdmin)
+  }, [enAdmin])
+
   // El panel de administración tiene su propia navegación
-  if (location.pathname.startsWith('/admin')) return null
+  if (enAdmin) return null
 
   const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0)
   const categoriaActiva = location.pathname === '/' ? (searchParams.get('categoria') || 'Todo') : null
@@ -28,7 +35,7 @@ function Header() {
 
   return (
     <>
-      <div className="bg-tinta text-[#E6E7E9] h-8 sm:h-10 overflow-hidden flex items-center text-[10px] sm:text-xs uppercase tracking-[0.14em]">
+      <div className="bg-white border-b border-linea text-gris h-8 sm:h-10 overflow-hidden flex items-center text-[10px] sm:text-xs uppercase tracking-[0.14em]">
         <div className="cinta flex shrink-0 whitespace-nowrap" aria-label="Plata fina ley 925 · Pedidos coordinados directamente por WhatsApp">
           {Array.from({ length: 8 }).map((_, i) => (
             <span key={i} aria-hidden="true" className="flex items-center gap-6 pr-6">
@@ -61,7 +68,7 @@ function Header() {
           <Link
             to="/carrito"
             aria-label={`Carrito, ${totalItems} ${totalItems === 1 ? 'pieza' : 'piezas'}`}
-            className="h-11 px-3 sm:px-[18px] rounded-full bg-tinta text-white flex items-center gap-2.5 text-sm font-semibold hover:bg-black transition-colors"
+            className="h-11 px-3 sm:px-[18px] rounded-full bg-tinta text-white flex items-center gap-2.5 text-sm font-semibold hover:bg-plata transition-colors"
           >
             <IconoBolsa />
             <span className="hidden sm:inline">Carrito</span>

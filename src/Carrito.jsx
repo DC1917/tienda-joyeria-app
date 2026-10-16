@@ -30,7 +30,7 @@ function Carrito() {
           <IconoJoya size={52} className="flotar text-plata mb-1" />
           <h1 className="font-display font-medium text-[32px]">Tu carrito está vacío</h1>
           <p className="text-sm text-gris">Explora el catálogo y elige las piezas que más te gusten.</p>
-          <Link to="/" className="mt-2 h-12 px-6 bg-tinta text-white rounded-full flex items-center text-[13px] uppercase tracking-[0.14em] font-bold hover:bg-black transition-colors">
+          <Link to="/" className="mt-2 h-12 px-6 bg-tinta text-white rounded-full flex items-center text-[13px] uppercase tracking-[0.14em] font-bold hover:bg-plata transition-colors">
             Ver catálogo
           </Link>
         </div>
@@ -108,7 +108,7 @@ function Carrito() {
               <button
                 type="button"
                 onClick={enviarWhatsApp}
-                className="mt-1 h-[58px] bg-whatsapp hover:bg-whatsapp-oscuro hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-12px_rgba(30,122,70,0.7)] active:scale-[0.98] text-white rounded-full flex items-center justify-center gap-3 text-[15px] font-bold transition-all cursor-pointer"
+                className="mt-1 h-[58px] bg-whatsapp hover:bg-whatsapp-oscuro hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-12px_rgba(30,122,70,0.7)] active:scale-[0.98] text-[#fff] rounded-full flex items-center justify-center gap-3 text-[15px] font-bold transition-all cursor-pointer"
               >
                 <IconoChat size={20} />
                 Enviar pedido por WhatsApp
@@ -117,7 +117,7 @@ function Carrito() {
 
             <div className="flex flex-col gap-2.5">
               <span className="text-xs uppercase tracking-[0.2em] text-gris font-semibold">Así llegará tu mensaje</span>
-              <p style={{ '--d': '500ms' }} className="entrada bg-[#E7F1E4] shadow-[0_6px_20px_-14px_rgba(28,29,31,0.4)] rounded-[4px_14px_14px_14px] px-[18px] py-4 text-[13px] leading-relaxed whitespace-pre-line">
+              <p style={{ '--d': '500ms' }} className="entrada bg-exito-fondo text-exito-texto shadow-[0_6px_20px_-14px_rgba(28,29,31,0.4)] rounded-[4px_14px_14px_14px] px-[18px] py-4 text-[13px] leading-relaxed whitespace-pre-line">
                 {armarMensaje().replace(/\*/g, '')}
               </p>
             </div>

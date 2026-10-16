@@ -35,8 +35,28 @@ body {
   outline-offset: 2px;
 }
 
+/* Tema "medianoche" de la tienda (el admin se queda claro). Invierte los tokens:
+   bg-tinta pasa a ser claro y bg-white pasa a ser la superficie oscura. */
+.noche {
+  --color-marfil: #0D1320;
+  --color-white: #131B2C;
+  --color-tinta: #E8ECF3;
+  --color-linea: #24304A;
+  --color-linea-suave: #1A2338;
+  --color-campo: #3A4868;
+  --color-gris: #A3AEC2;
+  --color-gris-claro: #7D8BA5;
+  --color-plata: #A9C1E0;
+  --color-foto: #18213A;
+  --color-exito-fondo: #12241A;
+  --color-exito-borde: #24543A;
+  --color-exito-texto: #9FD8B3;
+  color-scheme: dark;
+}
+.noche body { background: var(--color-marfil); }
+
 html { scroll-behavior: smooth; }
-::selection { background: var(--color-plata); color: #fff; }
+::selection { background: var(--color-plata); color: var(--color-marfil); }
 
 /* ---------- Efectos ---------- */
 
@@ -54,7 +74,7 @@ html { scroll-behavior: smooth; }
 /* Brillo plateado que recorre el texto */
 @keyframes brillo { to { background-position: -200% center; } }
 .texto-plata {
-  background: linear-gradient(100deg, var(--color-tinta) 40%, #C9CDD2 50%, var(--color-tinta) 60%) 0 center / 200% auto;
+  background: linear-gradient(100deg, var(--color-tinta) 40%, var(--color-plata) 50%, var(--color-tinta) 60%) 0 center / 200% auto;
   -webkit-background-clip: text; background-clip: text; color: transparent;
   animation: brillo 5s linear infinite;
 }
@@ -83,6 +103,24 @@ html { scroll-behavior: smooth; }
 /* Fundido al cambiar de foto */
 @keyframes fundido { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: none; } }
 .fundido { animation: fundido .6s cubic-bezier(.2,.7,.2,1) both; }
+
+/* Giro lento (sello circular) */
+@keyframes girar { to { transform: rotate(360deg); } }
+.girar { animation: girar 22s linear infinite; }
+
+/* Luz que sigue al cursor (ver seguirLuz en ui.jsx) */
+.luz { position: relative; isolation: isolate; }
+.luz::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(520px circle at var(--x, 50%) var(--y, 30%), rgba(169,193,224,.14), transparent 60%);
+}
+
+
+/* Grano sutil sobre el fondo */
+.grano::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 60; opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

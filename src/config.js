@@ -22,3 +22,10 @@ export function fichaCorta(p) {
   partes.push(`Ley ${p.ley || '925'}`)
   return partes.join(' · ')
 }
+
+// Mueve la luz de .luz hacia el cursor
+export function seguirLuz(e) {
+  const r = e.currentTarget.getBoundingClientRect()
+  e.currentTarget.style.setProperty('--x', `${e.clientX - r.left}px`)
+  e.currentTarget.style.setProperty('--y', `${e.clientY - r.top}px`)
+}

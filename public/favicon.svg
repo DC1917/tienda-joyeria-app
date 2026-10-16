@@ -1,10 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" fill="none" stroke="#1C1D1F" stroke-width="4">
-  <defs>
-    <clipPath id="c1"><circle cx="23.8" cy="36.1" r="5"/></clipPath>
-    <clipPath id="c2"><circle cx="36.2" cy="24" r="5"/></clipPath>
-    <mask id="ma"><rect width="60" height="60" fill="#fff" stroke="none"/><g clip-path="url(#c1)"><ellipse stroke="#000" stroke-width="9" cx="36" cy="38" rx="11" ry="16" transform="rotate(-30 36 38)"/></g></mask>
-    <mask id="mb"><rect width="60" height="60" fill="#fff" stroke="none"/><g clip-path="url(#c2)"><ellipse stroke="#000" stroke-width="9" cx="24" cy="22" rx="11" ry="16" transform="rotate(-30 24 22)"/></g></mask>
-  </defs>
-  <ellipse mask="url(#ma)" cx="24" cy="22" rx="11" ry="16" transform="rotate(-30 24 22)"/>
-  <ellipse mask="url(#mb)" cx="36" cy="38" rx="11" ry="16" transform="rotate(-30 36 38)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">
+  <circle cx="30" cy="30" r="29" fill="#0D1320"/>
+  <circle cx="30" cy="30" r="25" fill="none" stroke="#E8ECF3" stroke-width="2.6"/>
+  <text x="30" y="40" text-anchor="middle" fill="#E8ECF3" font-family="Cormorant Garamond, Georgia, serif" font-size="32" font-style="italic">S</text>
 </svg>
